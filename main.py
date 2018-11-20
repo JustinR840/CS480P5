@@ -2,8 +2,8 @@ from random import randint
 
 
 def main():
-	p_width = 16
-	p_height = 16
+	p_width = 28
+	p_height = 28
 
 	# Random data
 	randomData = [randint(0, 256) for _ in range(p_width * p_height)]
@@ -15,6 +15,8 @@ def main():
 	#	degreeOfSymmetry = 0
 	#	maxVerticalIntersections = 1
 	#	avgVerticalIntersections = 1
+	#	maxHorizontalIntersections = 0
+	#	avgHorizontalIntersections = 0
 	data1 = [0 if x < ((p_width * p_height) // 2) else 255 for x in range(p_width * p_height)]
 
 	# [0, 255]
@@ -23,6 +25,8 @@ def main():
 	#	degreeOfSymmetry = 255
 	#	maxVerticalIntersections = 0
 	#	avgVerticalIntersections = 0
+	#	maxHorizontalIntersections = 1
+	#	avgHorizontalIntersections = 1
 	data2 = [0 if (x % p_height) < (p_width // 2) else 255 for x in range(p_width * p_height)]
 
 
@@ -38,10 +42,14 @@ def main():
 	assert(img1.DegreeOfSymmetry() == 0)
 	assert(img1.MaxVerticalIntersections() == 1)
 	assert(img1.AvgVerticalIntersections() == 1)
+	assert(img1.MaxHorizontalIntersections() == 0)
+	assert(img1.AvgHorizontalIntersections() == 0)
 
 	assert(img2.DegreeOfSymmetry() == 255)
 	assert(img2.MaxVerticalIntersections() == 0)
 	assert(img2.AvgVerticalIntersections() == 0)
+	assert(img2.MaxHorizontalIntersections() == 1)
+	assert(img2.AvgHorizontalIntersections() == 1)
 
 
 	print()
@@ -169,26 +177,26 @@ class Image:
 				val = 0 if self._data[pos] >= 128 else 1
 				booleans[pos] = val
 
-		column_swaps = [0 for _ in range(self._pixelWidth)]
-		for i in range(self._pixelWidth):
-			last_val = booleans[i * self._pixelWidth]
+		row_swaps = [0 for _ in range(self._pixelHeight)]
+		for i in range(self._pixelHeight):
+			last_val = booleans[i * self._pixelHeight]
 
-			for j in range(1, self._pixelHeight):
-				pos = (i * self._pixelWidth) + j
+			for j in range(1, self._pixelWidth):
+				pos = (i * self._pixelHeight) + j
 
 				if(booleans[pos] != last_val):
-					last_val = self._data[pos]
-					column_swaps[i] += 1
+					last_val = booleans[pos]
+					row_swaps[i] += 1
 
 		total = 0
 
-		for i in range(len(column_swaps)):
-			total += column_swaps[i]
+		for i in range(len(row_swaps)):
+			total += row_swaps[i]
 
-		avg = total / len(column_swaps)
+		avg = total / len(row_swaps)
 
-		self._maxVerticalIntersections = max(column_swaps)
-		self._avgVerticalIntersections = avg
+		self._maxHorizontalIntersections = max(row_swaps)
+		self._avgHorizontalIntersections = avg
 
 
 	def AvgHorizontalIntersections(self):
