@@ -9,48 +9,40 @@ def main():
 	randomData = [randint(0, 256) for _ in range(p_width * p_height)]
 
 
-	# [0, 0]
-	# [1, 1]
-	# The following data should have:
-	#	degreeOfSymmetry = 1
-	#	maxVerticalIntersections = 1
-	#	avgVerticalIntersections = p_width
-	data1 = [0 if x < ((p_width * p_height) // 2) else 1 for x in range(p_width * p_height)]
-
-	# [0, 1]
-	# [0, 1]
+	# [0  , 0  ]
+	# [255, 255]
 	# The following data should have:
 	#	degreeOfSymmetry = 0
+	#	maxVerticalIntersections = 1
+	#	avgVerticalIntersections = 1
+	data1 = [0 if x < ((p_width * p_height) // 2) else 255 for x in range(p_width * p_height)]
+
+	# [0, 255]
+	# [0, 255]
+	# The following data should have:
+	#	degreeOfSymmetry = 255
 	#	maxVerticalIntersections = 0
 	#	avgVerticalIntersections = 0
-	data2 = [0 if (x % p_height) < (p_width // 2) else 1 for x in range(p_width * p_height)]
+	data2 = [0 if (x % p_height) < (p_width // 2) else 255 for x in range(p_width * p_height)]
 
 
 	# Converts the 1d array to 2d array. Maybe use in future?
-	#tmp = [[data[(y * p_height) + x] for x in range(p_width)] for y in range(p_height)]
+	tmp1 = [[data1[(y * p_height) + x] for x in range(p_width)] for y in range(p_height)]
+	tmp2 = [[data2[(y * p_height) + x] for x in range(p_width)] for y in range(p_height)]
 
 
 	img1 = Image(data1, p_width, p_height)
 	img2 = Image(data2, p_width, p_height)
 
 
-	assert(img1.DegreeOfSymmetry() == 1)
+	assert(img1.DegreeOfSymmetry() == 0)
 	assert(img1.MaxVerticalIntersections() == 1)
-	assert(img1.AvgVerticalIntersections() == p_width)
+	assert(img1.AvgVerticalIntersections() == 1)
 
-	assert(img2.DegreeOfSymmetry() == 0)
+	assert(img2.DegreeOfSymmetry() == 255)
 	assert(img2.MaxVerticalIntersections() == 0)
 	assert(img2.AvgVerticalIntersections() == 0)
 
-
-	#print(x.Density())
-	# print("DoS", x.DegreeOfSymmetry())
-	# x.SetAvgAndMaxVerticalIntersections()
-	# print("MaxVert", x.MaxVerticalIntersections())
-	# print("AvgVert", x.AvgVerticalIntersections())
-	#x.SetAvgAndMaxHorizontalIntersections()
-	#print(x.MaxHorizontalIntersections())
-	#print(x.AvgHorizontalIntersections())
 
 	print()
 
@@ -132,13 +124,13 @@ class Image:
 
 		column_swaps = [0 for _ in range(self._pixelWidth)]
 		for i in range(self._pixelWidth):
-			last_val = booleans[i * self._pixelWidth]
+			last_val = booleans[i]
 
 			for j in range(1, self._pixelHeight):
-				pos = (i * self._pixelWidth) + j
+				pos = (j * self._pixelHeight) + i
 
 				if(booleans[pos] != last_val):
-					last_val = self._data[pos]
+					last_val = booleans[pos]
 					column_swaps[i] += 1
 
 		total = 0
