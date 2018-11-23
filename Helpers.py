@@ -1,57 +1,81 @@
-class Image:
-	def __init__(self, data, pixelWidth, pixelHeight, greyscaleRange):
-		self._data = data
-		self._pixelWidth = pixelWidth
-		self._pixelHeight = pixelHeight
-		self._greyscaleRange = greyscaleRange
+def AllWeightsValid(perceptron, inputs, targets):
+	for i in range(len(inputs)):
+		if(perceptron.ActivationValue(inputs[i]) != targets[i]):
+			return False
+	return True
 
-		self._density = -1
-		self._degreeOfSymmetry = -1
-		self._maxVerticalIntersections = -1
-		self._avgVerticalIntersections = -1
-		self._maxHorizontalIntersections = -1
-		self._avgHorizontalIntersections = -1
+
+class Perceptron:
+	def __init__(self, weights, eta):
+		self.weights = weights
+		self.eta = eta
+
+	def ActivationValue(self, input):
+		sum = 0.0
+
+		for i in range(len(input)):
+			sum += self.weights[i] * input[i]
+
+		if(sum > 0):
+			return 1
+		return 0
+
+	def UpdateWeights(self, input, activation, target):
+		for i in range(len(self.weights)):
+			self.weights[i] = self.weights[i] - self.eta * (activation - target) * input[i]
+
+
+class Image:
+	def __init__(self, image, number, pixelWidth, pixelHeight, greyscaleRange):
+		# image should be any type of container than is 2 dimensional and can be iterated over using indexing
+		self.__image = image
+		self.__number = number
+		self.__pixelWidth = pixelWidth
+		self.__pixelHeight = pixelHeight
+		self.__greyscaleRange = greyscaleRange
+
+		self.__density = -1
+		self.__degreeOfSymmetry = -1
+		self.__maxVerticalIntersections = -1
+		self.__avgVerticalIntersections = -1
+		self.__maxHorizontalIntersections = -1
+		self.__avgHorizontalIntersections = -1
+
+		self.__SetDensity()
+		self.__SetDegreeOfSymmetry()
+		self.__SetAvgAndMaxVerticalIntersections()
+		self.__SetAvgAndMaxHorizontalIntersections()
 
 	# 1: Density: Density is defined as the average gray scale value of all the pixels in the image
 	# and is thus a real number between 0 and 255.
-	def Density(self):
-		if(self._density != -1):
-			return self._density
-
+	def __SetDensity(self):
 		total = 0
 
-		for i in range(len(self._data)):
-			total += self._data[i]
+		for row in range(len(self.__image)):
+			for col in range(len(self.__image[row])):
+				total += self.__image[row][col]
 
-		self._density = total / (self._pixelHeight * self._pixelWidth)
-
-		return self._density
+		self.__density = total / (self.__pixelHeight * self.__pixelWidth)
 
 	# 2: Measure of symmetry is defined as the average gray scale of the image obtained by the
 	# bitwise XOR (⊕) of each pixel with its corresponding vertically reflected image.
 	# (Thus if I is the image, let I' be the image whose j-th column is the (28 − j)-th column of I. Then,
 	# the measure of symmetry is the density of I ⊕ I'.)
-	def DegreeOfSymmetry(self):
-		if(self._degreeOfSymmetry != -1):
-			return self._degreeOfSymmetry
-
+	def __SetDegreeOfSymmetry(self):
 		total = 0
 
-		for i in range(self._pixelHeight):
-			for j in range(self._pixelWidth):
-				normal_pos = (i * self._pixelWidth) + j
-				inverted_pos = (i * self._pixelWidth) + (self._pixelWidth - j - 1)
+		for row in range(self.__pixelHeight):
+			for col in range(self.__pixelWidth):
+				normal_val = self.__image[row][col]
+				inverted_val = self.__image[row][self.__pixelWidth - col - 1]
 
-				normal_val = self._data[normal_pos]
-				inverted_val = self._data[inverted_pos]
-
+				# XOR the original position with the flipped position
 				total += normal_val ^ inverted_val
 
-		density = total / (self._pixelWidth * self._pixelHeight)
+		# Recall that this is the density of the XORed image
+		density = total / (self.__pixelWidth * self.__pixelHeight)
 
-		self._degreeOfSymmetry = density
-
-		return self._degreeOfSymmetry
+		self.__degreeOfSymmetry = density
 
 	# 3: The number of vertical intersections is defined as follows:
 	# First turn the image into black and white image by assigning a color 0 (1) for gray scale values above (below) 128.
@@ -60,95 +84,93 @@ class Image:
 	# Average this over all columns to get the average number of vertical intersections, and maximum over all columns will
 	# give the maximum number of vertical intersections.
 	# Vertical measures are defined in a similar way based on rows.
-	def SetAvgAndMaxVerticalIntersections(self):
-		if(self._avgVerticalIntersections != -1 and self._maxVerticalIntersections != -1):
-			return
+	def __SetAvgAndMaxVerticalIntersections(self):
+		# Convert the entire array to boolean values
+		booleans = [[0 for _ in range(self.__pixelWidth)] for _ in range(self.__pixelHeight)]
+		for row in range(self.__pixelHeight):
+			for col in range(self.__pixelWidth):
+				val = 0 if self.__image[row][col] >= self.__greyscaleRange // 2 else 1
+				booleans[row][col] = val
 
-		booleans = [0 for _ in range(self._pixelWidth * self._pixelHeight)]
+		# Go over the boolean values and count the number of times the values swap
+		# from 0->1 or 1->0 in the COLUMNS (vertical)
+		# This loop goes over the image using COLUMN MAJOR ORDER
+		column_swaps = [0 for _ in range(self.__pixelWidth)]
+		for col in range(self.__pixelWidth):
+			last_val = booleans[0][col]
 
-		for i in range(self._pixelHeight):
-			for j in range(self._pixelWidth):
-				pos = (i * self._pixelHeight) + j
+			for row in range(1, self.__pixelHeight):
+				if(booleans[row][col] != last_val):
+					last_val = booleans[row][col]
+					column_swaps[col] += 1
 
-				val = 0 if self._data[pos] >= self._greyscaleRange // 2 else 1
-				booleans[pos] = val
-
-		column_swaps = [0 for _ in range(self._pixelWidth)]
-		for i in range(self._pixelWidth):
-			last_val = booleans[i]
-
-			for j in range(1, self._pixelHeight):
-				pos = (j * self._pixelHeight) + i
-
-				if(booleans[pos] != last_val):
-					last_val = booleans[pos]
-					column_swaps[i] += 1
-
+		# Calculate the average vertical intersections and max vertical intersections
 		total = 0
-
 		for i in range(len(column_swaps)):
 			total += column_swaps[i]
-
 		avg = total / len(column_swaps)
 
-		self._maxVerticalIntersections = max(column_swaps)
-		self._avgVerticalIntersections = avg
+		self.__maxVerticalIntersections = max(column_swaps)
+		self.__avgVerticalIntersections = avg
 
+	def __SetAvgAndMaxHorizontalIntersections(self):
+		# Convert the entire array to boolean values
+		booleans = [[0 for _ in range(self.__pixelWidth)] for _ in range(self.__pixelHeight)]
+		for row in range(self.__pixelHeight):
+			for col in range(self.__pixelWidth):
+				val = 0 if self.__image[row][col] >= self.__greyscaleRange // 2 else 1
+				booleans[row][col] = val
 
-	def AvgVerticalIntersections(self):
-		if(self._avgVerticalIntersections == -1):
-			self.SetAvgAndMaxVerticalIntersections()
-		return self._avgVerticalIntersections
+		# Go over the boolean values and count the number of times the values swap
+		# from 0->1 or 1->0 in the ROWS (horizontal)
+		# This loop goes over the image using ROW MAJOR ORDER
+		row_swaps = [0 for _ in range(self.__pixelHeight)]
+		for row in range(self.__pixelHeight):
+			last_val = booleans[row][0]
 
+			for col in range(1, self.__pixelWidth):
+				if(booleans[row][col] != last_val):
+					last_val = booleans[row][col]
+					row_swaps[row] += 1
 
-	def MaxVerticalIntersections(self):
-		if(self._maxVerticalIntersections == -1):
-			self.SetAvgAndMaxVerticalIntersections()
-		return self._maxVerticalIntersections
-
-
-	def SetAvgAndMaxHorizontalIntersections(self):
-		if(self._avgHorizontalIntersections != -1 and self._maxHorizontalIntersections != -1):
-			return
-
-		booleans = [0 for _ in range(self._pixelWidth * self._pixelHeight)]
-
-		for i in range(self._pixelHeight):
-			for j in range(self._pixelWidth):
-				pos = (i * self._pixelHeight) + j
-
-				val = 0 if self._data[pos] >= self._greyscaleRange // 2 else 1
-				booleans[pos] = val
-
-		row_swaps = [0 for _ in range(self._pixelHeight)]
-		for i in range(self._pixelHeight):
-			last_val = booleans[i * self._pixelHeight]
-
-			for j in range(1, self._pixelWidth):
-				pos = (i * self._pixelHeight) + j
-
-				if(booleans[pos] != last_val):
-					last_val = booleans[pos]
-					row_swaps[i] += 1
-
+		# Calculate the average horizontal intersections and max horizontal intersections
 		total = 0
-
 		for i in range(len(row_swaps)):
 			total += row_swaps[i]
-
 		avg = total / len(row_swaps)
 
-		self._maxHorizontalIntersections = max(row_swaps)
-		self._avgHorizontalIntersections = avg
+		self.__maxHorizontalIntersections = max(row_swaps)
+		self.__avgHorizontalIntersections = avg
 
+	def GetImage(self):
+		return self.__image
 
-	def AvgHorizontalIntersections(self):
-		if(self._avgHorizontalIntersections == -1):
-			self.SetAvgAndMaxHorizontalIntersections()
-		return self._avgHorizontalIntersections
+	def GetNumber(self):
+		return self.__number
 
+	def GetPixelWidth(self):
+		return self.__pixelWidth
 
-	def MaxHorizontalIntersections(self):
-		if(self._maxHorizontalIntersections == -1):
-			self.SetAvgAndMaxHorizontalIntersections()
-		return self._maxHorizontalIntersections
+	def GetPixelHeight(self):
+		return self.__pixelHeight
+
+	def GetGreyscaleRange(self):
+		return self.__greyscaleRange
+
+	def GetDensity(self):
+		return self.__density
+
+	def GetDegreeOfSymmetry(self):
+		return self.__degreeOfSymmetry
+
+	def GetAvgVerticalIntersections(self):
+		return self.__avgVerticalIntersections
+
+	def GetMaxVerticalIntersections(self):
+		return self.__maxVerticalIntersections
+
+	def GetAvgHorizontalIntersections(self):
+		return self.__avgHorizontalIntersections
+
+	def GetMaxHorizontalIntersections(self):
+		return self.__maxHorizontalIntersections
