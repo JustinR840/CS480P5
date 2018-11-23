@@ -85,23 +85,16 @@ class Image:
 	# give the maximum number of vertical intersections.
 	# Vertical measures are defined in a similar way based on rows.
 	def __SetAvgAndMaxVerticalIntersections(self):
-		# Convert the entire array to boolean values
-		booleans = [[0 for _ in range(self.__pixelWidth)] for _ in range(self.__pixelHeight)]
-		for row in range(self.__pixelHeight):
-			for col in range(self.__pixelWidth):
-				val = 0 if self.__image[row][col] >= self.__greyscaleRange // 2 else 1
-				booleans[row][col] = val
-
-		# Go over the boolean values and count the number of times the values swap
-		# from 0->1 or 1->0 in the COLUMNS (vertical)
+		# Check for 1->0 and 0->1 swaps of each pixel in the image and count them
 		# This loop goes over the image using COLUMN MAJOR ORDER
 		column_swaps = [0 for _ in range(self.__pixelWidth)]
 		for col in range(self.__pixelWidth):
-			last_val = booleans[0][col]
+			last_val = 0 if self.__image[0][col] >= self.__greyscaleRange // 2 else 1
 
 			for row in range(1, self.__pixelHeight):
-				if(booleans[row][col] != last_val):
-					last_val = booleans[row][col]
+				current_val = 0 if self.__image[row][col] >= self.__greyscaleRange // 2 else 1
+				if(current_val != last_val):
+					last_val = current_val
 					column_swaps[col] += 1
 
 		# Calculate the average vertical intersections and max vertical intersections
@@ -114,23 +107,16 @@ class Image:
 		self.__avgVerticalIntersections = avg
 
 	def __SetAvgAndMaxHorizontalIntersections(self):
-		# Convert the entire array to boolean values
-		booleans = [[0 for _ in range(self.__pixelWidth)] for _ in range(self.__pixelHeight)]
-		for row in range(self.__pixelHeight):
-			for col in range(self.__pixelWidth):
-				val = 0 if self.__image[row][col] >= self.__greyscaleRange // 2 else 1
-				booleans[row][col] = val
-
-		# Go over the boolean values and count the number of times the values swap
-		# from 0->1 or 1->0 in the ROWS (horizontal)
+		# Check for 1->0 and 0->1 swaps of each pixel in the image and count them
 		# This loop goes over the image using ROW MAJOR ORDER
 		row_swaps = [0 for _ in range(self.__pixelHeight)]
 		for row in range(self.__pixelHeight):
-			last_val = booleans[row][0]
+			last_val = 0 if self.__image[row][0] >= self.__greyscaleRange // 2 else 1
 
 			for col in range(1, self.__pixelWidth):
-				if(booleans[row][col] != last_val):
-					last_val = booleans[row][col]
+				current_val = 0 if self.__image[row][col] >= self.__greyscaleRange // 2 else 1
+				if(current_val != last_val):
+					last_val = current_val
 					row_swaps[row] += 1
 
 		# Calculate the average horizontal intersections and max horizontal intersections
