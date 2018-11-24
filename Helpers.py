@@ -1,8 +1,77 @@
+def TestSimpleData(p_width, p_height, greyscale_range):
+	# [0  , 0  ]
+	# [255, 255]
+	# The following data should have:
+	#	degreeOfSymmetry = 0
+	#	maxVerticalIntersections = 1
+	#	avgVerticalIntersections = 1
+	#	maxHorizontalIntersections = 0
+	#	avgHorizontalIntersections = 0
+	data1 = [[0 if y < (p_height // 2) else greyscale_range for _ in range(p_width)] for y in range(p_height)]
+
+	# [0, 255]
+	# [0, 255]
+	# The following data should have:
+	#	degreeOfSymmetry = 255
+	#	maxVerticalIntersections = 0
+	#	avgVerticalIntersections = 0
+	#	maxHorizontalIntersections = 1
+	#	avgHorizontalIntersections = 1
+	data2 = [[0 if x < (p_width // 2) else greyscale_range for x in range(p_width)] for _ in range(p_height)]
+
+
+	img1 = Image(data1, 0, p_width, p_height, greyscale_range)
+	img2 = Image(data2, 0, p_width, p_height, greyscale_range)
+
+
+	assert(img1.GetDegreeOfSymmetry() == 0)
+	assert(img1.GetMaxVerticalIntersections() == 1)
+	assert(img1.GetAvgVerticalIntersections() == 1)
+	assert(img1.GetMaxHorizontalIntersections() == 0)
+	assert(img1.GetAvgHorizontalIntersections() == 0)
+
+	assert(img2.GetDegreeOfSymmetry() == greyscale_range)
+	assert(img2.GetMaxVerticalIntersections() == 0)
+	assert(img2.GetAvgVerticalIntersections() == 0)
+	assert(img2.GetMaxHorizontalIntersections() == 1)
+	assert(img2.GetAvgHorizontalIntersections() == 1)
+
+
 def AllWeightsValid(perceptron, inputs, targets):
 	for i in range(len(inputs)):
 		if(perceptron.ActivationValue(inputs[i]) != targets[i]):
 			return False
 	return True
+
+
+class MulticlassPerceptron:
+	def __init__(self, weights, eta):
+		self.weights = weights
+		self.eta = eta
+
+	def ActivationLabel(self, input):
+		maxsum = 0
+		label = 0
+
+		for i in range(len(self.weights)):
+			sum = 0.0
+
+			for j in range(len(input)):
+				sum += self.weights[i][j] * input[j]
+
+			if(sum > maxsum):
+				maxsum = sum
+				label = i
+
+		return label
+
+
+	def UpdateWeights(self, input, predicted_label, target_label):
+		for i in range(len(self.weights[predicted_label])):
+			self.weights[predicted_label][i] = self.weights[predicted_label][i] - self.eta * input[i]
+
+		for i in range(len(self.weights[target_label])):
+			self.weights[target_label][i] = self.weights[target_label][i] + self.eta * input[i]
 
 
 class Perceptron:
