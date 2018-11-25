@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def TestSimpleData(p_width, p_height, greyscale_range):
 	# [0  , 0  ]
 	# [255, 255]
@@ -50,28 +53,16 @@ class MulticlassPerceptron:
 		self.eta = eta
 
 	def ActivationLabel(self, input):
-		maxsum = 0
-		label = 0
-
-		for i in range(len(self.weights)):
-			sum = 0.0
-
-			for j in range(len(input)):
-				sum += self.weights[i][j] * input[j]
-
-			if(sum > maxsum):
-				maxsum = sum
-				label = i
-
-		return label
+		results = np.dot(self.weights, input)
+		return np.argmax(results)
 
 
 	def UpdateWeights(self, input, predicted_label, target_label):
-		for i in range(len(self.weights[predicted_label])):
-			self.weights[predicted_label][i] = self.weights[predicted_label][i] - self.eta * input[i]
-
 		for i in range(len(self.weights[target_label])):
 			self.weights[target_label][i] = self.weights[target_label][i] + self.eta * input[i]
+
+		for i in range(len(self.weights[predicted_label])):
+			self.weights[predicted_label][i] = self.weights[predicted_label][i] - self.eta * input[i]
 
 
 class Perceptron:

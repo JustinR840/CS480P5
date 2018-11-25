@@ -1,5 +1,4 @@
 import tensorflow as tf
-import numpy as np
 from Helpers import TestSimpleData
 from Problem1 import Problem1
 from Problem2 import Problem2
