@@ -1,5 +1,6 @@
 import numpy as np
-
+import math
+import random as r
 
 def TestSimpleData(p_width, p_height, greyscale_range):
 	# [0  , 0  ]
@@ -220,3 +221,76 @@ class Image:
 
 	def GetMaxHorizontalIntersections(self):
 		return self.__maxHorizontalIntersections
+
+
+#def MultiLayerPerceptron(input, num_hidden_layers, num_output_nodes, 
+	#num_epochs):
+
+class MultiLayerPerceptron:
+	def __init__(self, input_set, num_hidden_nodes, 
+		num_output_nodes, num_epochs, target):
+
+		# Initialize the random number generator
+		#random.seed()
+
+		# Initialize the hidden layer vector weights
+		self.hidden_wgts = [[0.1 for _ in range(49)]
+		for _ in range(num_hidden_nodes)]
+
+		# Initialize the output vector weights
+		self.output_wgts = [[0.1 for _ in range(num_hidden_nodes)]
+		for _ in range(num_output_nodes)]
+
+		# Initialize the target vector weights
+		self.targets = [0 for _ in range(num_output_nodes)]
+		self.targets[target] = 1
+
+
+		# Train the data set for a number of epochs
+		#for _ in range(num_epochs):
+		for _ in range(1):
+
+			# Training
+			# Forwards phase
+			# Compute activation of hidden neurons
+			self.hidden_acts = []
+			for i in range(num_hidden_nodes):
+				self.hidden_acts.append(1 / (1 + math.exp(-1 * 
+				np.dot(np.array(input_set), np.array(self.hidden_wgts[i])))))
+
+			# Compute activation of output neurons
+			self.output_acts = []
+			for i in range(num_output_nodes):
+				self.output_acts.append(1 / (1 + math.exp(-1 * 
+				np.dot(np.array(self.hidden_acts),
+				np.array(self.output_wgts[i])))))
+
+			# Backwards phase
+			# Compute error at the output neurons
+			self.delta_o = []
+			for i in range(num_output_nodes):
+				self.delta_o.append((self.output_acts[i] - self.targets[i])
+				* self.output_acts[i] * ((1 - self.output_acts[i])))
+
+			# Compute error at the hidden layer neurons
+			self.delta_h = []
+			for i in range(num_hidden_nodes):
+				self.delta_h.append(self.hidden_acts[i] * (1 - self.hidden_acts[i]) 
+				* (np.dot(np.array(self.hidden_wgts[i]),np.array(self.delta_o[i]))))
+
+			self.eta = 0.01
+
+			# Update output layer weights
+			for i in range(num_output_nodes):
+				for j in range(num_hidden_nodes):
+					self.output_wgts[i][j] = (self.output_wgts[i][j] - self.eta
+					*self.delta_o[i] * self.hidden_acts[j])
+
+			# Update hidden layer weights
+			for i in range(num_hidden_nodes):
+				for j in range(len(input_set)):
+					self.hidden_wgts[i][j] = (self.hidden_wgts[i][j] - self.eta
+					* self.delta_h[i] * input_set[j])
+
+	def GetOutputError(self):
+		return self.delta_o
