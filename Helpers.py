@@ -274,6 +274,10 @@ def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m
 			hidden_wgts[i][j] = (hidden_wgts[i][j] - eta * delta_h[i][j] * input_set[m][j])
 	return new_hidden_wgts
 
+####################################################################################################
+################################## Multilayer perceptron class #####################################
+####################################################################################################
+
 class MultiLayerPerceptron:
 	def __init__(self, input_set, num_hidden_nodes, num_output_nodes, num_epochs, targets,
 		test_input_set, tests, set_len):
