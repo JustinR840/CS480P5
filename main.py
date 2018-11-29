@@ -24,28 +24,11 @@ def main():
 	# (integers in range 0-9) with shape (num_samples,).
 	(x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-
+	#print(len(y_test))
 	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
 	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
-	Problem3(x_train, y_train, p_width, p_height, greyscale_range)
+	Problem3(x_train, y_train, x_test, y_test, greyscale_range)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-main()
+if __name__ == '__main__':
+	main()

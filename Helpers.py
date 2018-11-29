@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import random as r
+from copy import deepcopy
 
 def TestSimpleData(p_width, p_height, greyscale_range):
 	# [0  , 0  ]
@@ -222,75 +223,250 @@ class Image:
 	def GetMaxHorizontalIntersections(self):
 		return self.__maxHorizontalIntersections
 
+####################################################################################################
+############################ Multilayer perceptron helper functions ################################
+####################################################################################################
 
-#def MultiLayerPerceptron(input, num_hidden_layers, num_output_nodes, 
-	#num_epochs):
+# Compute activation of hidden neurons
+def hidden_act(input_set, hidden_wgts, num_hidden_nodes, m):
+	hidden_acts = []
+	for i in range(num_hidden_nodes):
+		weighted_sum = np.dot(input_set[m], hidden_wgts[i])
+		hidden_acts.append(1 / (1 + math.exp(-1 * weighted_sum)))
+	return hidden_acts
+
+# Compute activation of output neurons
+def output_act(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes):
+	output_acts = []
+	for i in range(num_output_nodes):
+		weighted_sum = np.dot(hidden_acts, output_wgts[i])
+		output_acts.append(1 / (1 + math.exp(-1 * weighted_sum)))
+	return output_acts
+
+def compute_output_error(output_acts, num_output_nodes, target_wgts):
+	delta_o = []
+	for i in range(num_output_nodes):
+		delta_o.append((output_acts[i] - target_wgts[i]) * output_acts[i]
+			* ((1 - output_acts[i])))
+	return delta_o
+
+# Compute error at the hidden layer neurons
+def compute_hidden_error(hidden_acts, hidden_wgts, num_hidden_nodes, num_output_nodes, delta_o):
+	delta_h = []
+	for i in range(num_hidden_nodes):
+		for j in range(num_output_nodes):
+			weighted_sum = np.dot(hidden_wgts[i], delta_o[j])
+		delta_h.append(hidden_acts[i] * (1 - hidden_acts[i]) * weighted_sum)
+	return delta_h
+
+# Update output layer weights
+def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta):
+	new_output_wgts = deepcopy(output_wgts)
+	for i in range(num_output_nodes):
+		for j in range(num_hidden_nodes):
+			new_output_wgts[i][j] = (output_wgts[i][j] - eta * delta_o[i] * hidden_acts[j])
+	return new_output_wgts
+
+def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m):
+	new_hidden_wgts = deepcopy(hidden_wgts)
+	for i in range(num_hidden_nodes):
+		for j in range(len(input_set[0])):
+			hidden_wgts[i][j] = (hidden_wgts[i][j] - eta * delta_h[i][j] * input_set[m][j])
+	return new_hidden_wgts
 
 class MultiLayerPerceptron:
-	def __init__(self, input_set, num_hidden_nodes, 
-		num_output_nodes, num_epochs, target):
+	def __init__(self, input_set, num_hidden_nodes, num_output_nodes, num_epochs, targets,
+		test_input_set, tests, set_len):
 
 		# Initialize the random number generator
-		#random.seed()
+		r.seed()
+
+		#self.input_set = np.array(input_set)
 
 		# Initialize the hidden layer vector weights
-		self.hidden_wgts = [[0.1 for _ in range(49)]
+		self.hidden_wgts = [[r.uniform(0.0001,0.001) for _ in range(len(input_set[0]))]
 		for _ in range(num_hidden_nodes)]
+		self.hidden_wgts = np.array(self.hidden_wgts,dtype=np.object)
 
 		# Initialize the output vector weights
-		self.output_wgts = [[0.1 for _ in range(num_hidden_nodes)]
-		for _ in range(num_output_nodes)]
+		self.output_wgts = [[r.uniform(0.0001,0.001)
+		for _ in range(num_hidden_nodes)] for _ in range(num_output_nodes)]
+		self.output_wgts = np.array(self.output_wgts,dtype=np.object)
 
-		# Initialize the target vector weights
-		self.targets = [0 for _ in range(num_output_nodes)]
-		self.targets[target] = 1
-
-
+		eta = 5
+		m = 5
 		# Train the data set for a number of epochs
-		#for _ in range(num_epochs):
-		for _ in range(1):
+		for n in range(num_epochs):
 
+			# Train the data against the whole input set for each epoch
+			#for m in range(len(input_set)):
+		#for m in range(1):
+			
 			# Training
 			# Forwards phase
-			# Compute activation of hidden neurons
-			self.hidden_acts = []
-			for i in range(num_hidden_nodes):
-				self.hidden_acts.append(1 / (1 + math.exp(-1 * 
-				np.dot(np.array(input_set), np.array(self.hidden_wgts[i])))))
+			# Initialize the target vector weights
+			self.target_wgts = [0 for _ in range(num_output_nodes)]
+			self.target_wgts[targets[m]] = 1
 
+			# Compute activation of hidden neurons
+			self.hidden_acts = hidden_act(input_set, self.hidden_wgts, num_hidden_nodes, m)
+			
 			# Compute activation of output neurons
-			self.output_acts = []
-			for i in range(num_output_nodes):
-				self.output_acts.append(1 / (1 + math.exp(-1 * 
-				np.dot(np.array(self.hidden_acts),
-				np.array(self.output_wgts[i])))))
+			self.output_acts = output_act(self.hidden_acts,self.output_wgts, num_hidden_nodes,
+				num_output_nodes)
 
 			# Backwards phase
 			# Compute error at the output neurons
-			self.delta_o = []
-			for i in range(num_output_nodes):
-				self.delta_o.append((self.output_acts[i] - self.targets[i])
-				* self.output_acts[i] * ((1 - self.output_acts[i])))
+			self.delta_o = compute_output_error(self.output_acts, num_output_nodes, 
+				self.target_wgts)
 
 			# Compute error at the hidden layer neurons
-			self.delta_h = []
-			for i in range(num_hidden_nodes):
-				self.delta_h.append(self.hidden_acts[i] * (1 - self.hidden_acts[i]) 
-				* (np.dot(np.array(self.hidden_wgts[i]),np.array(self.delta_o[i]))))
-
-			self.eta = 0.01
+			self.delta_h = compute_hidden_error(self.hidden_acts, self.hidden_wgts,
+				num_hidden_nodes, num_output_nodes, self.delta_o)
 
 			# Update output layer weights
-			for i in range(num_output_nodes):
-				for j in range(num_hidden_nodes):
-					self.output_wgts[i][j] = (self.output_wgts[i][j] - self.eta
-					*self.delta_o[i] * self.hidden_acts[j])
+			self.output_wgts = update_output_wgts(self.hidden_acts, num_hidden_nodes,
+				num_output_nodes, self.output_wgts, self.delta_o, eta)
 
 			# Update hidden layer weights
-			for i in range(num_hidden_nodes):
-				for j in range(len(input_set)):
-					self.hidden_wgts[i][j] = (self.hidden_wgts[i][j] - self.eta
-					* self.delta_h[i] * input_set[j])
+			self.hidden_wgts = update_hidden_wgts(input_set, num_hidden_nodes,
+				self.hidden_wgts, self.delta_h, eta, m)
 
-	def GetOutputError(self):
-		return self.delta_o
+			#print(self.delta_o)
+
+			if(n % (num_epochs // 20) == 0):
+				print(str(n) + " epochs have been completed.")
+		#print(self.hidden_acts)
+		#print()
+
+		# Compute test error rate
+		# Train the data against the whole input set for each epoch
+		#for m in range(len(test_input_set)):
+		
+		#for m in range(1):
+		
+		# Forwards phase
+		# Initialize the target vector weights
+		self.test_wgts = [0 for _ in range(num_output_nodes)]
+		self.test_wgts[tests[m]] = 1
+		print(self.test_wgts)
+
+		# Compute activation of test hidden neurons
+		#print(self.hidden_acts)
+		self.test_hidden_acts = hidden_act(test_input_set, self.hidden_wgts, num_hidden_nodes, 
+			m)
+		#print(self.test_hidden_acts)
+		# Compute activation of output neurons
+		self.test_output_acts = output_act(self.test_hidden_acts,self.output_wgts,
+			num_hidden_nodes, num_output_nodes)
+		print(self.test_output_acts)
+		#for i in self.test_output_acts:
+			#i = round(i)
+		#print(self.test_hidden_acts)
+
+		# Backwards phase
+		# Compute error at the output neurons
+		#self.test_delta_o = compute_output_error(self.test_output_acts, num_output_nodes, 
+			#self.test_wgts)
+		#print(self.test_delta_o)
+		print()
+		
+
+		"""
+		# Train the data set for a number of epochs
+		for _ in range(num_epochs):
+
+			# Train the data against the whole input set for each epoch
+			for m in range(len(input_set)):
+
+				# Training
+				# Forwards phase
+				# Initialize the target vector weights
+				self.target_wgts = [0 for _ in range(num_output_nodes)]
+				self.target_wgts[targets[m]] = 1
+
+				# Compute activation of hidden neurons
+				self.hidden_acts = []
+				for i in range(num_hidden_nodes):
+					self.hidden_acts.append(1 / (1 + math.exp(-1 * np.dot(self.input_set[m],
+					self.hidden_wgts[i]))))
+				self.hidden_acts = np.array(self.hidden_acts,dtype=np.object)
+
+				# Compute activation of output neurons
+				self.output_acts = []
+				for i in range(num_output_nodes):
+					self.output_acts.append(1 / (1 + math.exp(-1
+					* np.dot(self.hidden_acts, self.output_wgts[i]))))
+
+				# Backwards phase
+				# Compute error at the output neurons
+				self.delta_o = []
+				for i in range(num_output_nodes):
+					self.delta_o.append((self.output_acts[i] - self.target_wgts[i])
+					* self.output_acts[i] * ((1 - self.output_acts[i])))
+				self.delta_o = np.array(self.delta_o,dtype=np.object)
+
+				# Compute error at the hidden layer neurons
+				self.delta_h = []
+				for i in range(num_hidden_nodes):
+					for j in range(num_output_nodes):
+						self.delta_h.append(self.hidden_acts[i] * (1 - self.hidden_acts[i]) 
+						* (np.dot(self.hidden_wgts[i], self.delta_o[j])))
+
+				self.eta = 0.01
+
+				# Update output layer weights
+				for i in range(num_output_nodes):
+					for j in range(num_hidden_nodes):
+						self.output_wgts[i][j] = (self.output_wgts[i][j] - self.eta * self.delta_o[i]
+						* self.hidden_acts[j])
+
+
+				# Update hidden layer weights
+				for i in range(num_hidden_nodes):
+					for j in range(len(input_set[0])):
+						self.hidden_wgts[i][j] = (self.hidden_wgts[i][j] - self.eta * self.delta_h[i][j]
+						* input_set[m][j])
+
+		# Compute test error rate
+		# Train the data against the whole input set for each epoch
+		for m in range(len(test_input_set)):
+			
+			# Forwards phase
+			# Initialize the target vector weights
+			self.test_wgts = [0 for _ in range(num_output_nodes)]
+			self.test_wgts[tests[m]] = 1
+
+			# Compute activation of test hidden neurons
+			self.test_hidden_acts = []
+			for i in range(num_hidden_nodes):
+				self.test_hidden_acts.append(1 / (1 + math.exp(-1 * np.dot(self.test_input_set[m],
+				self.hidden_wgts[i]))))
+			self.test_hidden_acts = np.array(self.test_hidden_acts,dtype=np.object)
+
+			# Compute activation of output neurons
+			self.test_output_acts = []
+			for i in range(num_output_nodes):
+				self.test_output_acts.append(1 / (1 + math.exp(-1
+				* np.dot(self.test_hidden_acts, self.output_wgts[i]))))
+
+			# Backwards phase
+			# Compute error at the output neurons
+			self.test_delta_o = []
+			for i in range(num_output_nodes):
+				self.test_delta_o.append((self.test_output_acts[i] - self.test_wgts[i])
+				* self.test_output_acts[i] * ((1 - self.test_output_acts[i])))
+			self.test_delta_o = np.array(self.test_delta_o,dtype=np.object)
+		"""
+
+	def GetOutputActivations(self):
+		return self.output_acts
+
+	def GetTestOutputActivations(self):
+		return self.test_output_acts
+
+	def GetTestOutputError(self):
+		return self.test_delta_o
+
+	def GetNumHiddenNodes(self):
+		return self.num_hidden_nodes
