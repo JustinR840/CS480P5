@@ -2,8 +2,8 @@ import tensorflow as tf
 from Helpers import TestSimpleData
 from Problem1 import Problem1
 from Problem2 import Problem2
-from NeuralNetworkTests import run_perceptron
-#from Problem3 import Problem3
+#from NeuralNetworkTests import run_pecrceptron
+from Problem3 import Problem3
 
 
 
@@ -28,8 +28,8 @@ def main():
 	#print(len(y_test))
 	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
 	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
-	#Problem3(x_train, y_train, x_test, y_test, greyscale_range)
-	run_perceptron(x_train, y_train, x_test, y_test, 5)
+	Problem3(x_train, y_train, x_test, y_test, greyscale_range, 10)
+	#run_perceptron(x_train, y_train, x_test, y_test, 5)
 
 
 if __name__ == '__main__':
