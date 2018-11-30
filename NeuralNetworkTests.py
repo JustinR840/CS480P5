@@ -1,16 +1,8 @@
-"""from Helpers import MultiLayerPerceptron
-
-
-train = [[0,0],[0,1],[1,0],[1,1]]
-targets = [0,0,0,1]
-
-and_network = MultiLayerPerceptron(train,  1, 2, 1000, targets, train, targets)
-print(and_network.GetTestOutputError())"""
-
 import math
 import numpy as np
 from copy import deepcopy
 import random as r
+import tensorflow as tf
 
 # Test each component of the multilayer perceptron individually
 # Compute activation of hidden neurons
@@ -35,7 +27,7 @@ def output_act(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes):
 def compute_output_error(output_acts, num_output_nodes, target):
 	delta_o = []
 	for i in range(num_output_nodes):
-		delta_o.append(-1*(output_acts[i] - target[i]) * output_acts[i] * ((1 - output_acts[i])))
+		delta_o.append(-1 * (output_acts[i] - target[i]) * output_acts[i] * ((1 - output_acts[i])))
 	return delta_o
 
 # Compute error at the hidden layer neurons
@@ -62,29 +54,82 @@ def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m
 			new_hidden_wgts[i][j] = (hidden_wgts[i][j] + eta * delta_h[i] * input_set[m][j])
 	return new_hidden_wgts
 
-input_set = [[0,0],[0,1],[1,0],[1,1]]
-targets = [[0,1],[0,1],[0,1],[1,0]]
-num_hidden_nodes = 7
-num_output_nodes = len(targets[0])
-hidden_wgts = [[r.uniform(-1,1) for _ in range(len(input_set[0])+1)] for _ in range(num_hidden_nodes)]
-output_wgts = [[r.uniform(-1,1) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
-eta = 1
-bias = 1
-for i in range(len(input_set)):
-	input_set[i].append(bias)
-for _ in range(10000):
-	for m in range(4):
-		hidden_acts = hidden_act(input_set, hidden_wgts, num_hidden_nodes, m)
-		output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
-		delta_o = compute_output_error(output_acts, num_output_nodes, targets[m])
-		delta_h = compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, 
-			delta_o)
-		output_wgts = update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, 
-			eta)
-		hidden_wgts = update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m)
+def run_perceptron(x_train, y_train, x_test, y_test, num_hidden_nodes):
 
-for m in range(len(targets)):
-	print(targets[m])
-	hidden_acts = hidden_act(input_set, hidden_wgts, num_hidden_nodes, m)
-	output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
-	print(output_acts)
+	set_len = 5
+	#set_len = len(x_train)
+	input_set = [[0 for _ in range(49)] for _ in range(set_len)]
+	#for i in range(len(x_train)):
+	for i in range(set_len):
+		for j in range(0,28,4):
+			for k in range(0,28,4):
+				total = 0
+				for x in range(j,j+4):
+					for y in range(k,k+4):
+						total += x_train[i][x][y] / 16 / 255
+				input_set[i][j*7//4+k//4] = total
+
+
+	test_set = [[0 for _ in range(49)] for _ in range(set_len)]
+	for i in range(set_len):
+		for j in range(0,28,4):
+			for k in range(0,28,4):
+				total = 0
+				for x in range(j,j+4):
+					for y in range(k,k+4):
+						total += x_test[i][x][y] / 16 / 255
+				test_set[i][j*7//4+k//4] = total
+
+
+
+	old_targets = y_train.tolist()[0:set_len]
+	targets = []
+	for i in range(len(old_targets)):
+		t = []
+		for j in range(10):
+			if(j == old_targets[i]):
+				t.append(1)
+			else:
+				t.append(0)
+		targets.append(t)
+
+	old_tests = y_test.tolist()[0:set_len]
+	tests = []
+	for i in range(len(old_tests)):
+		t = []
+		for j in range(10):
+			if(j == old_tests[i]):
+				t.append(1)
+			else:
+				t.append(0)
+		tests.append(t)
+
+	#num_hidden_nodes = 5
+	num_output_nodes = len(targets[0])
+	hidden_wgts = [[r.uniform(0,1) for _ in range(len(input_set[0])+1)] for _ in range(num_hidden_nodes)]
+	output_wgts = [[r.uniform(0,1) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
+	num_epochs = 1000
+	eta = 1
+	bias = 1
+
+	for i in range(len(input_set)):
+		input_set[i].append(bias)
+	for i in range(len(test_set)):
+		test_set[i].append(bias)
+	for n in range(num_epochs):
+		for m in range(len(input_set)):
+			hidden_acts = hidden_act(input_set, hidden_wgts, num_hidden_nodes, m)
+			output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
+			delta_o = compute_output_error(output_acts, num_output_nodes, targets[m])
+			delta_h = compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o)
+			output_wgts = update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta)
+			hidden_wgts = update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m)
+
+		if(n % (num_epochs // 20) == 0):
+			print(str(n) + " epochs have been completed.")
+
+	for m in range(len(test_set)):
+		print(tests[m])
+		hidden_acts = hidden_act(test_set, hidden_wgts, num_hidden_nodes, m)
+		output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
+		print(output_acts)
