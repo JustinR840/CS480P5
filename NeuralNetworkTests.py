@@ -35,7 +35,7 @@ def output_act(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes):
 def compute_output_error(output_acts, num_output_nodes, target):
 	delta_o = []
 	for i in range(num_output_nodes):
-		delta_o.append(-1*(output_acts[i] - target) * output_acts[i] * ((1 - output_acts[i])))
+		delta_o.append(-1*(output_acts[i] - target[i]) * output_acts[i] * ((1 - output_acts[i])))
 	return delta_o
 
 # Compute error at the hidden layer neurons
@@ -63,11 +63,10 @@ def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m
 	return new_hidden_wgts
 
 input_set = [[0,0],[0,1],[1,0],[1,1]]
-targets = [0,1,1,1]
-num_hidden_nodes = 2
-num_output_nodes = 1
+targets = [[0,1],[0,1],[0,1],[1,0]]
+num_hidden_nodes = 7
+num_output_nodes = len(targets[0])
 hidden_wgts = [[r.uniform(-1,1) for _ in range(len(input_set[0])+1)] for _ in range(num_hidden_nodes)]
-
 output_wgts = [[r.uniform(-1,1) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
 eta = 1
 bias = 1
@@ -84,10 +83,8 @@ for _ in range(10000):
 			eta)
 		hidden_wgts = update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m)
 
-for m in range(4):
+for m in range(len(targets)):
 	print(targets[m])
 	hidden_acts = hidden_act(input_set, hidden_wgts, num_hidden_nodes, m)
 	output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
 	print(output_acts)
-
-
