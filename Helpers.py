@@ -1,5 +1,8 @@
 import numpy as np
-
+import math
+import random as r
+from copy import deepcopy
+import json
 
 def TestSimpleData(p_width, p_height, greyscale_range):
 	# [0  , 0  ]
@@ -251,3 +254,12 @@ class Image:
 
 	def GetMaxHorizontalIntersections(self):
 		return self.__maxHorizontalIntersections
+
+####################################################################################################
+############################ Multilayer perceptron helper functions ################################
+####################################################################################################
+
+####################################################################################################
+############################ Multilayer perceptron helper functions ################################
+####################################################################################################
+
