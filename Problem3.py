@@ -60,6 +60,9 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Process start time
 	start_time = dt.datetime.now()
 
+	# Init the RNG
+	r.seed()
+
 	set_len = 100
 	#set_len = len(x_train)
 
@@ -93,7 +96,6 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 						# This helps keep the neural network from becoming oversaturated
 						total += x_test[i][x][y] / 16 / 255
 				test_set[i][j*7//4+k//4] = total
-
 
 	# Create a target weight vector for our training set
 	old_targets = y_train.tolist()[0:set_len]
@@ -142,14 +144,21 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Run the training algorithm for a number of epochs
 	for n in range(num_epochs):
 
-		# For each value in the training set
+		# Run the training set in a randomized order
+		train_order = []
+		for i in range(len(train_set)):
+			train_order.append(i)
+		r.shuffle(train_order)
+		#print(train_order)
+
+		# Run the training set
 		for m in range(len(train_set)):
-			hidden_acts = hidden_act(train_set, hidden_wgts, num_hidden_nodes, m)
+			hidden_acts = hidden_act(train_set, hidden_wgts, num_hidden_nodes, train_order[m])
 			output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
-			delta_o = compute_output_error(output_acts, num_output_nodes, targets[m])
+			delta_o = compute_output_error(output_acts, num_output_nodes, targets[train_order[m]])
 			delta_h = compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o)
 			output_wgts = update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta)
-			hidden_wgts = update_hidden_wgts(train_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m)
+			hidden_wgts = update_hidden_wgts(train_set, num_hidden_nodes, hidden_wgts, delta_h, eta, train_order[m])
 
 		if(n % (num_epochs // 10) == 0):
 			print(str(n) + " epochs have been completed.")
@@ -160,15 +169,18 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# The confusion matrix
 	confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]
 
-	# Run the trained learning
+	# Run the test set in a randomized order
+	test_order = []
+	for i in range(len(test_set)):
+		test_order.append(i)
+	r.shuffle(test_order)
+
+	# Run the test set
 	for m in range(len(test_set)):
-	#for m in range(len(train_set)):
 
 		# The value we want
-		target = y_test[m]
-		#target = y_train[m]
-		hidden_acts = hidden_act(train_set, hidden_wgts, num_hidden_nodes, m)
-		#hidden_acts = hidden_act(test_set, hidden_wgts, num_hidden_nodes, m)
+		target = y_test[test_order[m]]
+		hidden_acts = hidden_act(test_set, hidden_wgts, num_hidden_nodes, test_order[m])
 		output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
 
 		# Which value is largest, aka, the algo's current guess?
@@ -188,16 +200,13 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 		# Increment the confusion matrix
 		confusion_matrix[target][cur_guess] += 1
-		
-		#print(output_acts)
 
 	# Report our findings
+	delta_time = (dt.datetime.now() - start_time)
+	print("The process took " + str(delta_time))
+	print("There were " + str(num_successes) + " sucesses.")
+	print(str(num_successes * 100 / len(test_set)) + "% are correct.")
 	print("Confusion matrix:")
 	print("X axis is the guessed value")
 	print("Y axis is the actual value")
 	print(confusion_matrix)
-	delta_time = (dt.datetime.now() - start_time)
-	print("There were " + str(num_successes) + " sucesses.")
-	#print(str(num_successes * 100 / len(train_set)) + "% are correct.")
-	print(str(num_successes * 100 / len(test_set)) + "% are correct.")
-	print("The process took " + str(delta_time))
