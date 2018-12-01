@@ -63,7 +63,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Init the RNG
 	r.seed()
 
-	set_len = 100
+	set_len = 1
 	#set_len = len(x_train)
 
 	# Prepare the training set

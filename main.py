@@ -2,8 +2,8 @@ import tensorflow as tf
 from Helpers import TestSimpleData
 from Problem1 import Problem1
 from Problem2 import Problem2
-#from NeuralNetworkTests import run_pecrceptron
 from Problem3 import Problem3
+import json
 
 
 
@@ -30,6 +30,8 @@ def main():
 	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
 	Problem3(x_train, y_train, x_test, y_test, greyscale_range, 10)
 	#run_perceptron(x_train, y_train, x_test, y_test, 5)
+
+	# Slice up the 
 
 
 if __name__ == '__main__':
