@@ -11,7 +11,7 @@ def main():
 	greyscale_range = 255
 
 	# Just to verify that the internals of Image still work as expected
-	TestSimpleData(p_width, p_height, greyscale_range)
+	#TestSimpleData(p_width, p_height, greyscale_range)
 
 
 
@@ -21,8 +21,8 @@ def main():
 	(x_train, y_train), (x_test, y_test) = mnist.load_data()
 
 
-	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
-	Problem2(x_train, y_train, p_width, p_height, greyscale_range)
+	Problem1(x_train, y_train, p_width, p_height, greyscale_range)
+	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
 
 
 

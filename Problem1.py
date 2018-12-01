@@ -1,5 +1,6 @@
 from Helpers import Image, Perceptron, AllWeightsValid
 from random import randint, shuffle
+#import numpy as np
 
 
 def Problem1(x_train, y_train, p_width, p_height, greyscale_range):
@@ -57,6 +58,7 @@ def Problem1(x_train, y_train, p_width, p_height, greyscale_range):
 		for i in range(len(train_inputs)):
 			activation = p.ActivationValue(train_inputs[i])
 
+			#p.UpdateWeights(np.array(train_inputs[i]), activation, train_targets[i])
 			p.UpdateWeights(train_inputs[i], activation, train_targets[i])
 
 		stop += 1
@@ -114,7 +116,7 @@ def Problem1(x_train, y_train, p_width, p_height, greyscale_range):
 			else:
 				n_9_wrong += 1
 
-	print("Number of correct 7 guesses: ", n_7_right)
-	print("Number of incorrect 7 guesses: ", n_7_wrong)
-	print("Number of correct 9 guesses: ", n_9_right)
-	print("Number of incorrect 9 guesses: ", n_9_wrong)
+	print("Percentage of 7s correctly guessed: " + str((n_7_right / (n_7_right + n_7_wrong)) * 100) + "%")
+	print("Percentage of 9s correctly guessed: " + str((n_9_right / (n_9_right + n_9_wrong)) * 100) + "%")
+	print(n_7_right, n_7_wrong)
+	print(n_9_right, n_9_wrong)

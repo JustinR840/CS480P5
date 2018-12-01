@@ -71,10 +71,7 @@ class Perceptron:
 		self.eta = eta
 
 	def ActivationValue(self, input):
-		sum = 0.0
-
-		for i in range(len(input)):
-			sum += self.weights[i] * input[i]
+		sum = np.dot(self.weights, input)
 
 		if(sum > 0):
 			return 1
@@ -83,6 +80,7 @@ class Perceptron:
 	def UpdateWeights(self, input, activation, target):
 		for i in range(len(self.weights)):
 			self.weights[i] = self.weights[i] - self.eta * (activation - target) * input[i]
+		#self.weights = self.weights - ((self.eta * (activation - target)) * np.array(input))
 
 
 class Image:
@@ -100,6 +98,8 @@ class Image:
 		self.__avgVerticalIntersections = -1
 		self.__maxHorizontalIntersections = -1
 		self.__avgHorizontalIntersections = -1
+
+		#self.__booleanTransitionCalculator = lambda t: 1 if t >= self.__greyscaleRange // 2 else -1
 
 		self.__SetDensity()
 		self.__SetDegreeOfSymmetry()
@@ -145,6 +145,16 @@ class Image:
 	# give the maximum number of vertical intersections.
 	# Vertical measures are defined in a similar way based on rows.
 	def __SetAvgAndMaxVerticalIntersections(self):
+
+		# booleans = np.array([[self.__booleanTransitionCalculator(j) for j in i] for i in self.__image])
+		# booleanchanges = np.sum((np.diff(booleans) != 0) * 1, 1)
+		#
+		# self.__maxVerticalIntersections = np.amax(booleanchanges)
+		# self.__avgVerticalIntersections = np.average(booleanchanges)
+		#
+		# return
+
+
 		# Check for 1->0 and 0->1 swaps of each pixel in the image and count them
 		# This loop goes over the image using COLUMN MAJOR ORDER
 		column_swaps = [0 for _ in range(self.__pixelWidth)]
@@ -163,10 +173,31 @@ class Image:
 			total += column_swaps[i]
 		avg = total / len(column_swaps)
 
+		# np.set_printoptions(linewidth=200)
+
+		# print(booleans)
+		# print(A)
+		# print(booleanchanges)
+		#
+		# print(column_swaps)
+		# print(self.__image)
+
+
+
 		self.__maxVerticalIntersections = max(column_swaps)
 		self.__avgVerticalIntersections = avg
 
 	def __SetAvgAndMaxHorizontalIntersections(self):
+
+		# booleans = np.array([[self.__booleanTransitionCalculator(j) for j in i] for i in self.__image.T])
+		# booleanchanges = np.sum((np.diff(booleans) != 0) * 1, 1)
+		#
+		# self.__maxHorizontalIntersections = np.amax(booleanchanges)
+		# self.__avgHorizontalIntersections = np.average(booleanchanges)
+		#
+		# return
+
+
 		# Check for 1->0 and 0->1 swaps of each pixel in the image and count them
 		# This loop goes over the image using ROW MAJOR ORDER
 		row_swaps = [0 for _ in range(self.__pixelHeight)]
