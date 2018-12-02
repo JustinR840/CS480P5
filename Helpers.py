@@ -4,6 +4,7 @@ import random as r
 from copy import deepcopy
 import json
 
+
 def TestSimpleData(p_width, p_height, greyscale_range):
 	# [0  , 0  ]
 	# [255, 255]
@@ -61,11 +62,8 @@ class MulticlassPerceptron:
 
 
 	def UpdateWeights(self, input, predicted_label, target_label):
-		for i in range(len(self.weights[target_label])):
-			self.weights[target_label][i] = self.weights[target_label][i] + self.eta * input[i]
-
-		for i in range(len(self.weights[predicted_label])):
-			self.weights[predicted_label][i] = self.weights[predicted_label][i] - self.eta * input[i]
+		self.weights[target_label] = self.weights[target_label] + self.eta * input
+		self.weights[predicted_label] = self.weights[predicted_label] - self.eta * input
 
 
 class Perceptron:
@@ -81,9 +79,7 @@ class Perceptron:
 		return 0
 
 	def UpdateWeights(self, input, activation, target):
-		for i in range(len(self.weights)):
-			self.weights[i] = self.weights[i] - self.eta * (activation - target) * input[i]
-		#self.weights = self.weights - ((self.eta * (activation - target)) * np.array(input))
+		self.weights = self.weights - (self.eta * (activation - target)) * np.array(input)
 
 
 class Image:

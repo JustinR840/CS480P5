@@ -1,5 +1,5 @@
 import tensorflow as tf
-from Helpers import TestSimpleData
+from Helpers import TestSimpleData, TransformData, DumpData
 from Problem1 import Problem1
 from Problem2 import Problem2
 from Problem3 import Problem3
@@ -26,9 +26,9 @@ def main():
 	(x_train, y_train), (x_test, y_test) = mnist.load_data()
 
 	#print(len(y_test))
-	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
+	Problem1(x_train, y_train, p_width, p_height, greyscale_range)
 	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
-	Problem3(x_train, y_train, x_test, y_test, greyscale_range, 10)
+	#Problem3(x_train, y_train, x_test, y_test, greyscale_range, 10)
 	#run_perceptron(x_train, y_train, x_test, y_test, 5)
 
 

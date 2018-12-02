@@ -118,5 +118,3 @@ def Problem1(x_train, y_train, p_width, p_height, greyscale_range):
 
 	print("Percentage of 7s correctly guessed: " + str((n_7_right / (n_7_right + n_7_wrong)) * 100) + "%")
 	print("Percentage of 9s correctly guessed: " + str((n_9_right / (n_9_right + n_9_wrong)) * 100) + "%")
-	print(n_7_right, n_7_wrong)
-	print(n_9_right, n_9_wrong)

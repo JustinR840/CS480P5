@@ -68,30 +68,17 @@ def TransformTestingData(test_data, test_inputs, test_targets):
 
 
 def DoTesting(p, test_inputs, test_targets):
-	right = [0 for _ in range(10)]
-	wrong = [0 for _ in range(10)]
-	total = [0 for _ in range(10)]
+	confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]
 
 	for i in range(len(test_inputs)):
-		total[test_targets[i]] += 1
-
 		if (i % 100 == 0):
 			print("Gotten results for ", i, "entries in the TEST set")
 
 		activation = p.ActivationLabel(test_inputs[i])
 
-		if(activation == test_targets[i]):
-			right[test_targets[i]] += 1
-		else:
-			wrong[test_targets[i]] += 1
+		confusion_matrix[activation][test_targets[i]] += 1
 
-	print("Right")
-	for i in range(len(total)):
-		print(str(i) + ": " + str(round((right[i] / total[i]) * 100)) + "%")
-
-	print("Wrong")
-	for i in range(len(total)):
-		print(str(i) + ": " + str(round((wrong[i] / total[i]) * 100)) + "%")
+	print(np.array(confusion_matrix))
 
 def Problem2(x_train, y_train, p_width, p_height, greyscale_range):
 	all_train = [[] for _ in range(10)]
