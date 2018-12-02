@@ -1,39 +1,33 @@
 import math
 import numpy as np
-from copy import deepcopy
 import random as r
 import tensorflow as tf
 import datetime as dt
 
 # Test each component of the multilayer perceptron individually
 # Compute activation of hidden neurons
-def hidden_act(input_set, hidden_wgts, num_hidden_nodes, m):
-	hidden_acts = []
+def hidden_act(input_set, hidden_wgts, hidden_acts, num_hidden_nodes, m):
 	for i in range(num_hidden_nodes):
 		weighted_sum = np.dot(input_set[m], hidden_wgts[i])
-		hidden_acts.append(1 / (1 + math.exp(-1 * weighted_sum)))
-	hidden_acts.append(1)
+		hidden_acts[i] = (1 / (1 + math.exp(-1 * weighted_sum)))
 	return hidden_acts
 
 # Compute activation of output neurons
-def output_act(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes):
-	output_acts = []
+def output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes, num_output_nodes):
 	for i in range(num_output_nodes):
 		weighted_sum = np.dot(hidden_acts, output_wgts[i])
-		output_acts.append(1 / (1 + math.exp(-1 * weighted_sum)))
+		output_acts[i] = 1 / (1 + math.exp(-1 * weighted_sum))
 	return output_acts
 
-def compute_output_error(output_acts, num_output_nodes, target):
-	delta_o = []
+def compute_output_error(output_acts, num_output_nodes, target, delta_o):
 	for i in range(num_output_nodes):
-		delta_o.append(-1 * (output_acts[i] - target[i]) * output_acts[i] * ((1 - output_acts[i])))
+		delta_o[i] = -1 * (output_acts[i] - target[i]) * output_acts[i] * ((1 - output_acts[i]))
 	return delta_o
 
 # Compute error at the hidden layer neurons
-def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o):
-	delta_h = []
+def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h):
 	for i in range(num_hidden_nodes):
-		delta_h.append(delta_o[0] * output_wgts[0][i] * hidden_acts[i] * (1-hidden_acts[i]))
+		delta_h[i] = delta_o[0] * output_wgts[0][i] * hidden_acts[i] * (1-hidden_acts[i])
 	return delta_h
 
 # Update output layer weights
@@ -44,11 +38,10 @@ def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_w
 	return output_wgts
 
 def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m):
-	new_hidden_wgts = deepcopy(hidden_wgts)
 	for i in range(num_hidden_nodes):
 		for j in range(len(input_set[0])):
-			new_hidden_wgts[i][j] = (hidden_wgts[i][j] + eta * delta_h[i] * input_set[m][j])
-	return new_hidden_wgts
+			hidden_wgts[i][j] = (hidden_wgts[i][j] + eta * delta_h[i] * input_set[m][j])
+	return hidden_wgts
 
 def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes):
 
@@ -58,7 +51,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Init the RNG
 	r.seed()
 
-	set_len = 20
+	set_len = 10
 	#set_len = len(x_train)
 
 	# Prepare the training set
@@ -124,6 +117,16 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	output_wgts = [[r.uniform(0,1/3) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
 	num_epochs = 1000
 
+	# Initialize activations
+	hidden_acts = [0 for _ in range(num_hidden_nodes+1)]
+	hidden_acts[num_hidden_nodes] = 1
+	output_acts = [0 for _ in range(num_output_nodes+1)]
+	output_acts[num_output_nodes] = 1
+
+	# Initialize delta error
+	delta_h = [0 for _ in range(num_hidden_nodes)]
+	delta_o = [0 for _ in range(num_output_nodes)]
+
 	# Learning coefficient
 	eta = 1
 
@@ -143,14 +146,14 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 		train_order = []
 		for i in range(len(train_set)):
 			train_order.append(i)
-		r.shuffle(train_order)
+		#r.shuffle(train_order)
 
 		# Run the training set
 		for m in range(len(train_set)):
-			hidden_acts = hidden_act(train_set, hidden_wgts, num_hidden_nodes, train_order[m])
-			output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
-			delta_o = compute_output_error(output_acts, num_output_nodes, targets[train_order[m]])
-			delta_h = compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o)
+			hidden_acts = hidden_act(train_set, hidden_wgts, hidden_acts, num_hidden_nodes, train_order[m])
+			output_acts = output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes,num_output_nodes)
+			delta_o = compute_output_error(output_acts, num_output_nodes, targets[train_order[m]], delta_o)
+			delta_h = compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h)
 			output_wgts = update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta)
 			hidden_wgts = update_hidden_wgts(train_set, num_hidden_nodes, hidden_wgts, delta_h, eta, train_order[m])
 
@@ -167,15 +170,17 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	test_order = []
 	for i in range(len(test_set)):
 		test_order.append(i)
-	r.shuffle(test_order)
+	#r.shuffle(test_order)
 
 	# Run the test set
 	for m in range(len(test_set)):
 
 		# The value we want
 		target = y_test[test_order[m]]
-		hidden_acts = hidden_act(test_set, hidden_wgts, num_hidden_nodes, test_order[m])
-		output_acts = output_act(hidden_acts, output_wgts, num_hidden_nodes,num_output_nodes)
+
+		# Recall algorithm
+		hidden_acts = hidden_act(test_set, hidden_wgts, hidden_acts, num_hidden_nodes, test_order[m])
+		output_acts = output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes,num_output_nodes)
 
 		# Which value is largest, aka, the algo's current guess?
 		max_val = -999999
@@ -183,7 +188,8 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 		# Find the max value in the current vector
 		# If the current value is larger, mark that value as our current guess
-		for i in range(len(output_acts)):
+		#print(output_acts)
+		for i in range(num_output_nodes):
 			if(output_acts[i] > max_val):
 				max_val = output_acts[i]
 				cur_guess = i
