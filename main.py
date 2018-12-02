@@ -39,7 +39,5 @@ def main():
 	#Problem3(x_train, y_train, x_test, y_test, greyscale_range, 15)
 	#Problem3(x_train, y_train, x_test, y_test, greyscale_range, 21)
 
-
-
 if __name__ == '__main__':
 	main()
