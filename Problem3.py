@@ -12,16 +12,14 @@ def hidden_act(input_set, hidden_wgts, num_hidden_nodes, m):
 	for i in range(num_hidden_nodes):
 		weighted_sum = np.dot(input_set[m], hidden_wgts[i])
 		hidden_acts.append(1 / (1 + math.exp(-1 * weighted_sum)))
+	hidden_acts.append(1)
 	return hidden_acts
 
 # Compute activation of output neurons
 def output_act(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes):
-	hidden = deepcopy(hidden_acts)
-	bias = 1
-	hidden.append(bias)
 	output_acts = []
 	for i in range(num_output_nodes):
-		weighted_sum = np.dot(hidden, output_wgts[i])
+		weighted_sum = np.dot(hidden_acts, output_wgts[i])
 		output_acts.append(1 / (1 + math.exp(-1 * weighted_sum)))
 	return output_acts
 
@@ -40,13 +38,10 @@ def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_
 
 # Update output layer weights
 def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta):
-	new_output_wgts = deepcopy(output_wgts)
-	new_hidden_acts = deepcopy(hidden_acts)
-	new_hidden_acts.append(1)
 	for i in range(num_output_nodes):
 		for j in range(3):
-			new_output_wgts[i][j] = (new_output_wgts[i][j] + eta * delta_o[i] * new_hidden_acts[j])
-	return new_output_wgts
+			output_wgts[i][j] = (output_wgts[i][j] + eta * delta_o[i] * hidden_acts[j])
+	return output_wgts
 
 def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m):
 	new_hidden_wgts = deepcopy(hidden_wgts)
@@ -63,7 +58,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Init the RNG
 	r.seed()
 
-	set_len = 1
+	set_len = 20
 	#set_len = len(x_train)
 
 	# Prepare the training set
@@ -149,7 +144,6 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 		for i in range(len(train_set)):
 			train_order.append(i)
 		r.shuffle(train_order)
-		#print(train_order)
 
 		# Run the training set
 		for m in range(len(train_set)):
@@ -199,6 +193,9 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 			num_successes += 1
 
 		# Increment the confusion matrix
+		print("target = " + str(target))
+		print("cur_guess = " + str(cur_guess))
+		print()
 		confusion_matrix[target][cur_guess] += 1
 
 	# Report our findings

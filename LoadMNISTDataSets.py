@@ -17,7 +17,7 @@ def LoadData():
 		# Build the x file and y file
 		for j in range(len(data)):
 			x_train.append(data[j])
-			y_train.append(j)
+			y_train.append(i)
 
 	# Build the test files
 	for i in range(10):
@@ -31,7 +31,7 @@ def LoadData():
 		# Build the x file and y file
 		for j in range(len(data)):
 			x_test.append(data[j])
-			y_test.append(j)
+			y_test.append(i)
 
 	x_train = np.asarray(x_train)
 	y_train = np.asarray(y_train)
