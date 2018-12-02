@@ -33,7 +33,7 @@ def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_
 # Update output layer weights
 def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta):
 	for i in range(num_output_nodes):
-		for j in range(3):
+		for j in range(num_hidden_nodes):
 			output_wgts[i][j] = (output_wgts[i][j] + eta * delta_o[i] * hidden_acts[j])
 	return output_wgts
 
@@ -199,9 +199,9 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 			num_successes += 1
 
 		# Increment the confusion matrix
-		print("target = " + str(target))
-		print("cur_guess = " + str(cur_guess))
-		print()
+		#print("target = " + str(target))
+		#print("cur_guess = " + str(cur_guess))
+		#print()
 		confusion_matrix[target][cur_guess] += 1
 
 	# Report our findings
