@@ -25,11 +25,7 @@ def compute_output_error(output_acts, num_output_nodes, target, delta_o):
 
 # Compute error at the hidden layer neurons
 def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h):
-	#delta_h = delta_o[0] * output_wgts[0][i] * hidden_acts[i] * (1-hidden_acts[i])
-	for i in range(num_hidden_nodes):
-		delta_h[i] = 0
-		for j in range(num_output_nodes):
-			delta_h[i] += delta_o[j] * output_wgts[j][i] * hidden_acts[i] * (1-hidden_acts[i])
+	delta_h = np.dot(delta_o,output_wgts) * hidden_acts * (1-hidden_acts)
 	return delta_h
 
 # Update output layer weights
@@ -131,9 +127,9 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	num_output_nodes = len(targets[0])
 
 	# Initial setup for the hidden node and output node weights
-	hidden_wgts = [[r.uniform(0,1/3) for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
+	hidden_wgts = [[0.1 for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
 	hidden_wgts = np.array(hidden_wgts, dtype=np.float64)
-	output_wgts = [[r.uniform(0,1/3) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
+	output_wgts = [[0.1 for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
 	output_wgts = np.array(output_wgts, dtype=np.float64)
 	num_epochs = 1000
 
