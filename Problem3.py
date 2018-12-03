@@ -6,7 +6,6 @@ import datetime as dt
 import sys
 
 # Compute activation of hidden neurons
-
 def hidden_act(input_set, hidden_wgts, hidden_acts, num_hidden_nodes, m):
 	wgt_sums = np.dot(hidden_wgts, input_set[m])
 	hidden_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
@@ -19,15 +18,18 @@ def output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes, num_outp
 	output_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
 	return output_acts
 
+# Compute error at the output layer neurons
 def compute_output_error(output_acts, num_output_nodes, target, delta_o):
-	for i in range(num_output_nodes):
-		delta_o[i] = -1 * (output_acts[i] - target[i]) * output_acts[i] * ((1 - output_acts[i]))
+	delta_o = -1 * (output_acts - target) * output_acts * (1 - output_acts)
 	return delta_o
 
 # Compute error at the hidden layer neurons
 def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h):
+	#delta_h = delta_o[0] * output_wgts[0][i] * hidden_acts[i] * (1-hidden_acts[i])
 	for i in range(num_hidden_nodes):
-		delta_h[i] = delta_o[0] * output_wgts[0][i] * hidden_acts[i] * (1-hidden_acts[i])
+		delta_h[i] = 0
+		for j in range(num_output_nodes):
+			delta_h[i] += delta_o[j] * output_wgts[j][i] * hidden_acts[i] * (1-hidden_acts[i])
 	return delta_h
 
 # Update output layer weights
@@ -109,6 +111,8 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 				t.append(0)
 		targets.append(t)
 
+	targets = np.array(targets, dtype=np.float64)
+
 	# Create a target weight vector for our test set
 	old_tests = y_test.tolist()[0:set_len]
 	tests = []
@@ -121,27 +125,27 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 				t.append(0)
 		tests.append(t)
 
+	tests = np.array(tests, dtype=np.float64)
+
 	# The number of output nodes
 	num_output_nodes = len(targets[0])
 
 	# Initial setup for the hidden node and output node weights
-	hidden_wgts = [[0.1 for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
+	hidden_wgts = [[r.uniform(0,1/3) for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
 	hidden_wgts = np.array(hidden_wgts, dtype=np.float64)
-	output_wgts = [[0.1 for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
+	output_wgts = [[r.uniform(0,1/3) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
 	output_wgts = np.array(output_wgts, dtype=np.float64)
 	num_epochs = 1000
 
 	# Initialize activations
-	#hidden_acts = [0 for _ in range(num_hidden_nodes+1)]
 	hidden_acts = np.zeros(num_hidden_nodes+1, dtype=np.float64)
 	hidden_acts[num_hidden_nodes] = 1
-	#output_acts = [0 for _ in range(num_output_nodes+1)]
 	output_acts = np.zeros(num_output_nodes+1, dtype=np.float64)
 	output_acts[num_output_nodes] = 1
 
 	# Initialize delta error
-	delta_h = [0 for _ in range(num_hidden_nodes)]
-	delta_o = [0 for _ in range(num_output_nodes)]
+	delta_h = np.zeros(num_hidden_nodes, dtype=np.float64)
+	delta_o = np.zeros(num_output_nodes, dtype=np.float64)
 
 	# Learning coefficient
 	eta = 1
@@ -166,8 +170,6 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 		if(n % (num_epochs // 10) == 0):
 			print(str(n) + " epochs have been completed.")
-
-	print(hidden_acts)
 
 	# Keep track of how many times the neural network has guessed correctly
 	num_successes = 0
