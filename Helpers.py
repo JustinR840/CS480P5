@@ -5,8 +5,6 @@ from copy import deepcopy
 import json
 
 def GetDegreeOfSymmetry(image, pixelHeight, pixelWidth):
-	#return np.average(np.ndarray.flatten(np.bitwise_xor(image, np.flip(image))))
-
 	total = 0
 	for row in range(pixelHeight):
 		for col in range(pixelWidth):
@@ -72,24 +70,23 @@ def LoadInputs(x_set, y_set):
 	input_set = np.array([[[0, 0, 0, 0, 0, 0, 0] for _ in range(counts[i])] for i in range(10)])
 
 	for i in range(len(x_set)):
-		if (i % 100 == 0):
-			print("Processed ", i, "entries in the TRAIN set")
+		if (i % 1000 == 0):
+			print("Transformed", i, "images into input.")
 
-		__image = x_set[i]
-		__number = y_set[i]
-		__pixelWidth = 28
-		__pixelHeight = 28
-		__greyscaleRange = 255
+		image = x_set[i]
+		number = y_set[i]
+		pixelWidth = 28
+		pixelHeight = 28
 
-		__density = np.average(np.ndarray.flatten(__image))
-		__degreeOfSymmetry = GetDegreeOfSymmetry(__image, __pixelHeight, __pixelWidth)
-		blackwhite = __image <= 128
-		__maxVerticalIntersections, __avgVerticalIntersections = GetAvgAndMaxVerticalIntersections(blackwhite, __pixelHeight, __pixelWidth)
-		__maxHorizontalIntersections, __avgHorizontalIntersections = GetAvgAndMaxHorizontalIntersections(blackwhite, __pixelHeight, __pixelWidth)
+		density = np.average(np.ndarray.flatten(image))
+		degreeOfSymmetry = GetDegreeOfSymmetry(image, pixelHeight, pixelWidth)
+		blackwhite = image <= 128
+		maxVerticalIntersections, avgVerticalIntersections = GetAvgAndMaxVerticalIntersections(blackwhite, pixelHeight, pixelWidth)
+		maxHorizontalIntersections, avgHorizontalIntersections = GetAvgAndMaxHorizontalIntersections(blackwhite, pixelHeight, pixelWidth)
 
-		input_set[__number][counts[__number] - 1] = [__density, __degreeOfSymmetry, __avgVerticalIntersections, __maxVerticalIntersections, __avgHorizontalIntersections, __maxHorizontalIntersections, -1]
+		input_set[number][counts[number] - 1] = [density, degreeOfSymmetry, avgVerticalIntersections, maxVerticalIntersections, avgHorizontalIntersections, maxHorizontalIntersections, -1]
 
-		counts[__number] -= 1
+		counts[number] -= 1
 
 
 
@@ -152,14 +149,9 @@ def TestSimpleData(p_width, p_height, greyscale_range):
 	assert(img2[5] == 1)
 
 
-def AllWeightsValid(perceptron, inputs, targets):
-	for i in range(len(inputs)):
-		if(perceptron.ActivationValue(inputs[i]) != targets[i]):
-			return False
-	return True
-
-
 class MulticlassPerceptron:
+	# Relies on NumPy arrays
+
 	def __init__(self, weights, eta):
 		self.weights = weights
 		self.eta = eta
@@ -168,13 +160,14 @@ class MulticlassPerceptron:
 		results = np.dot(self.weights, input)
 		return np.argmax(results)
 
-
 	def UpdateWeights(self, input, predicted_label, target_label):
 		self.weights[target_label] = self.weights[target_label] + self.eta * input
 		self.weights[predicted_label] = self.weights[predicted_label] - self.eta * input
 
 
 class Perceptron:
+	# Relies on NumPy arrays
+
 	def __init__(self, weights, eta):
 		self.weights = weights
 		self.eta = eta

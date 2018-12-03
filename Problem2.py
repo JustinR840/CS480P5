@@ -1,4 +1,4 @@
-from Helpers import Image, MulticlassPerceptron, AllWeightsValid
+from Helpers import Image, MulticlassPerceptron
 from random import randint, shuffle
 import numpy as np
 
