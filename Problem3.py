@@ -10,6 +10,7 @@ def hidden_act(input_set, hidden_wgts, hidden_acts, num_hidden_nodes, m):
 	wgt_sums = np.dot(hidden_wgts, input_set[m])
 	hidden_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
 	hidden_acts = np.append(hidden_acts, [1])
+	hidden_acts = np.array(hidden_acts, dtype=np.float64)
 	return hidden_acts
 
 # Compute activation of output neurons
@@ -20,25 +21,31 @@ def output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes, num_outp
 
 # Compute error at the output layer neurons
 def compute_output_error(output_acts, num_output_nodes, target, delta_o):
-	delta_o = -1 * (output_acts - target) * output_acts * (1 - output_acts)
+	delta_o = np.array(-1 * (output_acts - target) * output_acts * (1 - output_acts), dtype=np.float64)
 	return delta_o
 
 # Compute error at the hidden layer neurons
 def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h):
-	delta_h = np.dot(delta_o,output_wgts) * hidden_acts * (1-hidden_acts)
+	delta_h = np.array(np.dot(delta_o,output_wgts) * hidden_acts * (1-hidden_acts), dtype=np.float64)
 	return delta_h
 
 # Update output layer weights
 def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta):
 	for i in range(num_output_nodes):
-		for j in range(num_hidden_nodes):
-			output_wgts[i][j] = (output_wgts[i][j] + eta * delta_o[i] * hidden_acts[j])
+		output_wgts[i] = np.array(output_wgts[i] + eta * delta_o[i] * hidden_acts, dtype=np.float64)
+	#output_wgts = np.array(output_wgts + delta_o * hidden_acts, dtype=np.float64)
 	return output_wgts
 
 def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m):
+	#arr = np.zeros((11,50))
+	#arr[:,:] = input_set[m]
+	#print(hidden_wgts)
 	for i in range(num_hidden_nodes):
-		for j in range(len(input_set[0])):
-			hidden_wgts[i][j] = (hidden_wgts[i][j] + eta * delta_h[i] * input_set[m][j])
+		hidden_wgts[i] = np.array(hidden_wgts[i] + eta * delta_h[i] * input_set[m], dtype=np.float64)
+	#print(hidden_wgts)
+	#sys.exit()
+	# May not work
+	#hidden_wgts += eta * np.dot(delta_h,arr)
 	return hidden_wgts
 
 def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes):
@@ -49,7 +56,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Init the RNG
 	r.seed()
 
-	set_len = 20
+	set_len = 1000
 	#set_len = len(x_train)
 
 	# Prepare the training set
@@ -108,6 +115,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 		targets.append(t)
 
 	targets = np.array(targets, dtype=np.float64)
+	#targets = np.array([[0]])
 
 	# Create a target weight vector for our test set
 	old_tests = y_test.tolist()[0:set_len]
@@ -125,6 +133,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 	# The number of output nodes
 	num_output_nodes = len(targets[0])
+	#num_output_nodes = 1
 
 	# Initial setup for the hidden node and output node weights
 	hidden_wgts = [[0.1 for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
@@ -132,6 +141,8 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	output_wgts = [[0.1 for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
 	output_wgts = np.array(output_wgts, dtype=np.float64)
 	num_epochs = 1000
+	#hidden_wgts = np.array([[2,-2,0],[1,3,-1]], dtype=np.float64)
+	#output_wgts = np.array([[3,-2,-1]], dtype=np.float64)
 
 	# Initialize activations
 	hidden_acts = np.zeros(num_hidden_nodes+1, dtype=np.float64)
@@ -146,6 +157,11 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Learning coefficient
 	eta = 1
 
+	# Process start time
+	epoch_start_time = dt.datetime.now()
+
+	#train_set = test_set
+	#train_set = np.array([[1,0,1]], dtype=np.float64)
 	# Run the training algorithm for a number of epochs
 	for n in range(num_epochs):
 
@@ -166,6 +182,8 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 		if(n % (num_epochs // 10) == 0):
 			print(str(n) + " epochs have been completed.")
+
+	print(output_wgts)
 
 	# Keep track of how many times the neural network has guessed correctly
 	num_successes = 0
@@ -213,7 +231,8 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 	# Report our findings
 	delta_time = (dt.datetime.now() - start_time)
-	print("The process took " + str(delta_time))
+	print("The entire process took " + str(delta_time))
+	print("The epochs took " + str(dt.datetime.now() - epoch_start_time))
 	print("There were " + str(num_successes) + " sucesses.")
 	print(str(num_successes * 100 / len(test_set)) + "% are correct.")
 	print("Confusion matrix:")
