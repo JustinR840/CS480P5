@@ -3,20 +3,20 @@ import numpy as np
 import random as r
 import tensorflow as tf
 import datetime as dt
+import sys
 
-# Test each component of the multilayer perceptron individually
 # Compute activation of hidden neurons
+
 def hidden_act(input_set, hidden_wgts, hidden_acts, num_hidden_nodes, m):
-	for i in range(num_hidden_nodes):
-		weighted_sum = np.dot(input_set[m], hidden_wgts[i])
-		hidden_acts[i] = (1 / (1 + math.exp(-1 * weighted_sum)))
+	wgt_sums = np.dot(hidden_wgts, input_set[m])
+	hidden_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
+	hidden_acts = np.append(hidden_acts, [1])
 	return hidden_acts
 
 # Compute activation of output neurons
 def output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes, num_output_nodes):
-	for i in range(num_output_nodes):
-		weighted_sum = np.dot(hidden_acts, output_wgts[i])
-		output_acts[i] = 1 / (1 + math.exp(-1 * weighted_sum))
+	wgt_sums = np.dot(output_wgts, hidden_acts)
+	output_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
 	return output_acts
 
 def compute_output_error(output_acts, num_output_nodes, target, delta_o):
@@ -51,7 +51,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Init the RNG
 	r.seed()
 
-	set_len = 10
+	set_len = 20
 	#set_len = len(x_train)
 
 	# Prepare the training set
@@ -85,6 +85,18 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 						total += x_test[i][x][y] / 16 / 255
 				test_set[i][j*7//4+k//4] = total
 
+	# Bias for the input and hidden node
+	bias = 1
+
+	# Append the bias to each input and test vector
+	for i in range(len(train_set)):
+		train_set[i].append(bias)
+	for i in range(len(test_set)):
+		test_set[i].append(bias)
+
+	train_set = np.array(train_set, dtype=np.float64)
+	test_set = np.array(test_set, dtype=np.float64)
+
 	# Create a target weight vector for our training set
 	old_targets = y_train.tolist()[0:set_len]
 	targets = []
@@ -113,14 +125,18 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	num_output_nodes = len(targets[0])
 
 	# Initial setup for the hidden node and output node weights
-	hidden_wgts = [[r.uniform(0,1/3) for _ in range(len(train_set[0])+1)] for _ in range(num_hidden_nodes)]
-	output_wgts = [[r.uniform(0,1/3) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
+	hidden_wgts = [[0.1 for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
+	hidden_wgts = np.array(hidden_wgts, dtype=np.float64)
+	output_wgts = [[0.1 for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
+	output_wgts = np.array(output_wgts, dtype=np.float64)
 	num_epochs = 1000
 
 	# Initialize activations
-	hidden_acts = [0 for _ in range(num_hidden_nodes+1)]
+	#hidden_acts = [0 for _ in range(num_hidden_nodes+1)]
+	hidden_acts = np.zeros(num_hidden_nodes+1, dtype=np.float64)
 	hidden_acts[num_hidden_nodes] = 1
-	output_acts = [0 for _ in range(num_output_nodes+1)]
+	#output_acts = [0 for _ in range(num_output_nodes+1)]
+	output_acts = np.zeros(num_output_nodes+1, dtype=np.float64)
 	output_acts[num_output_nodes] = 1
 
 	# Initialize delta error
@@ -129,15 +145,6 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 	# Learning coefficient
 	eta = 1
-
-	# Bias for the input and hidden node
-	bias = 1
-
-	# Append the bias to each input and test vector
-	for i in range(len(train_set)):
-		train_set[i].append(bias)
-	for i in range(len(test_set)):
-		test_set[i].append(bias)
 
 	# Run the training algorithm for a number of epochs
 	for n in range(num_epochs):
@@ -159,6 +166,8 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 
 		if(n % (num_epochs // 10) == 0):
 			print(str(n) + " epochs have been completed.")
+
+	print(hidden_acts)
 
 	# Keep track of how many times the neural network has guessed correctly
 	num_successes = 0
