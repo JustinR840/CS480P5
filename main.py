@@ -1,6 +1,6 @@
 import tensorflow as tf
-from Helpers import TestSimpleData
-from Problem1 import Problem1
+from Helpers import TestSimpleData, LoadInputs
+from Problem1 import Problem1, Problem1B
 from Problem2 import Problem2
 from Problem3 import Problem3
 import json
@@ -13,7 +13,7 @@ def main():
 	greyscale_range = 255
 
 	# Just to verify that the internals of Image still work as expected
-	#TestSimpleData(p_width, p_height, greyscale_range)
+	TestSimpleData(p_width, p_height, greyscale_range)
 
 	# Get the MNIST
 	mnist = tf.keras.datasets.mnist
@@ -25,8 +25,13 @@ def main():
 	# (integers in range 0-9) with shape (num_samples,).
 	(x_train, y_train), (x_test, y_test) = mnist.load_data()
 
+	#train_sets = LoadInputs(x_train, y_train)
+	test_sets = LoadInputs(x_train, y_train)
+	#print()
+
 	#print(len(y_test))
-	Problem1(x_train, y_train, p_width, p_height, greyscale_range)
+	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
+	Problem1B(test_sets[7], test_sets[9])
 	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
 	#Problem3(x_train, y_train, x_test, y_test, greyscale_range, 10)
 	#run_perceptron(x_train, y_train, x_test, y_test, 5)
