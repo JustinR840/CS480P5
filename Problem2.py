@@ -3,115 +3,76 @@ from random import randint, shuffle
 import numpy as np
 
 
-def DataToImages(x_train, y_train, p_width, p_height, greyscale_range, all_train):
-	for i in range(len(y_train)):
-		if (i % 100 == 0):
-			print("Transformed", i, "entries into Images")
-
-		all_train[int(y_train[i])].append(Image(x_train[i], y_train[i], p_width, p_height, greyscale_range))
-
-def ImagesToInput(training_data, train_inputs, train_targets):
-	for i in range(len(training_data)):
-		if (i % 100 == 0):
-			print("Processed ", i, "entries in the TRAIN set")
-
-		m_input = []
-		m_input.append(training_data[i].GetDensity())
-		m_input.append(training_data[i].GetDegreeOfSymmetry())
-		m_input.append(training_data[i].GetAvgVerticalIntersections())
-		m_input.append(training_data[i].GetMaxVerticalIntersections())
-		m_input.append(training_data[i].GetAvgHorizontalIntersections())
-		m_input.append(training_data[i].GetMaxHorizontalIntersections())
-		m_input.append(-1)
-		train_inputs.append(m_input)
-
-		train_targets.append(training_data[i].GetNumber())
-
-def DoTraining(train_inputs, train_targets):
+def DoTraining(train_inputs, train_targets, train_indices, test_input, test_targets, test_indices):
 	weights = np.random.uniform(-0.1, 0.1, [10, len(train_inputs[0])])
 	eta = 0.1
 	n_epochs = 1000
 
 	p = MulticlassPerceptron(weights, eta)
 
+	lowest_err, c_m = DoTesting(p, test_input, test_targets, test_indices)
+	bestweights = np.array(list(p.weights))
+
 	stop = 0
-	while (stop < n_epochs):# and not AllWeightsValid(p, train_inputs, train_targets)):
+	while (stop < n_epochs):
 		if (stop % 100 == 0):
 			print("Gone through", stop, "epochs on the TRAIN set")
 
-		for i in range(len(train_inputs)):
+		for i in train_indices:
 			activation = p.ActivationLabel(train_inputs[i])
 
 			if(activation != train_targets[i]):
 				p.UpdateWeights(train_inputs[i], activation, train_targets[i])
 
+		current_err, c_m = DoTesting(p, test_input, test_targets, test_indices)
+		if(current_err < lowest_err):
+			bestweights = np.array(list(p.weights))
+
 		stop += 1
+
+	p.weights = np.array(list(bestweights))
 
 	return p
 
-def TransformTestingData(test_data, test_inputs, test_targets):
-	for i in range(len(test_data)):
-		if (i % 100 == 0):
-			print("Processed ", i, "entries in the TEST set")
 
-		m_input = []
-		m_input.append(test_data[i].GetDensity())
-		m_input.append(test_data[i].GetDegreeOfSymmetry())
-		m_input.append(test_data[i].GetAvgVerticalIntersections())
-		m_input.append(test_data[i].GetMaxVerticalIntersections())
-		m_input.append(test_data[i].GetAvgHorizontalIntersections())
-		m_input.append(test_data[i].GetMaxHorizontalIntersections())
-		m_input.append(-1)
-		test_inputs.append(m_input)
+def DoTesting(p, test_inputs, test_targets, test_indices):
+	confusion_matrix = np.zeros((10, 10))
 
-		test_targets.append(test_data[i].GetNumber())
-
-
-def DoTesting(p, test_inputs, test_targets):
-	confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]
-
-	for i in range(len(test_inputs)):
-		if (i % 100 == 0):
-			print("Gotten results for ", i, "entries in the TEST set")
-
+	for i in test_indices:
 		activation = p.ActivationLabel(test_inputs[i])
 
-		confusion_matrix[activation][test_targets[i]] += 1
+		confusion_matrix[activation][test_targets[i].astype(int)] += 1
 
-	print(np.array(confusion_matrix))
+	total = 0.0
+	for i in range(len(confusion_matrix)):
+		for j in range(len(confusion_matrix)):
+			if(i != j):
+				total += confusion_matrix[i][j]
 
-def Problem2(x_train, y_train, p_width, p_height, greyscale_range):
-	all_train = [[] for _ in range(10)]
-	all_test = [[] for _ in range(10)]
-	DataToImages(x_train, y_train, p_width, p_height, greyscale_range, all_train)
+	err = total / (10 * 10)
 
-	for i in range(len(all_train)):
-		all_train[i] = all_train[i][:round(len(all_train[i]) * 0.8)]
-		all_test[i] = all_train[i][:round(len(all_train[i]) * -0.2)]
+	return err, confusion_matrix
 
+def Problem2(train_sets, test_sets):
+	all_train = np.concatenate((train_sets[0], train_sets[1], train_sets[2], train_sets[3], train_sets[4], train_sets[5], train_sets[6], train_sets[7], train_sets[8], train_sets[9]))
+	train_targets = np.concatenate((np.zeros(len(train_sets[0])), np.ones(len(train_sets[1])), np.full(len(train_sets[2]), 2), np.full(len(train_sets[3]), 3), np.full(len(train_sets[4]), 4), np.full(len(train_sets[5]), 5), np.full(len(train_sets[6]), 6), np.full(len(train_sets[7]), 7), np.full(len(train_sets[8]), 8), np.full(len(train_sets[9]), 9)))
 
-	training_data = []
-	for i in range(len(all_train)):
-		training_data = training_data + all_train[i]
-	shuffle(training_data)
+	all_test = np.concatenate((test_sets[0], test_sets[1], test_sets[2], test_sets[3], test_sets[4], test_sets[5], test_sets[6], test_sets[7], test_sets[8], test_sets[9]))
+	test_targets = np.concatenate((np.zeros(len(test_sets[0])), np.ones(len(test_sets[1])), np.full(len(test_sets[2]), 2), np.full(len(test_sets[3]), 3), np.full(len(test_sets[4]), 4), np.full(len(test_sets[5]), 5), np.full(len(test_sets[6]), 6), np.full(len(test_sets[7]), 7), np.full(len(test_sets[8]), 8), np.full(len(test_sets[9]), 9)))
 
-	train_inputs = []
-	train_targets = []
-	ImagesToInput(training_data, train_inputs, train_targets)
+	train_indices = np.arange(0, len(all_train))
+	shuffle(train_indices)
 
-	return
+	test_indices = np.arange(0, len(all_test))
+	shuffle(test_indices)
 
-	p = DoTraining(train_inputs, train_targets)
-	print(p.weights)
+	p = DoTraining(all_train, train_targets, train_indices, all_test, test_targets, test_indices)
 
+	np.set_printoptions(linewidth=200)
+	print("Best Weights: " + str(p.weights))
 
-	test_data = []
-	for i in range(len(all_test)):
-		test_data = test_data + all_test[i]
-	shuffle(test_data)
+	err, c_m = DoTesting(p, all_test, test_targets, test_indices)
+	print("Error: " + str(err))
+	print("Confusion Matrix: " + str(c_m))
 
-	test_inputs = []
-	test_targets = []
-	TransformTestingData(test_data, test_inputs, test_targets)
-	DoTesting(p, test_inputs, test_targets)
 

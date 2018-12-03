@@ -161,8 +161,8 @@ class MulticlassPerceptron:
 		return np.argmax(results)
 
 	def UpdateWeights(self, input, predicted_label, target_label):
-		self.weights[target_label] = self.weights[target_label] + self.eta * input
-		self.weights[predicted_label] = self.weights[predicted_label] - self.eta * input
+		self.weights[target_label.astype(int)] = self.weights[target_label.astype(int)] + self.eta * input
+		self.weights[predicted_label.astype(int)] = self.weights[predicted_label.astype(int)] - self.eta * input
 
 
 class Perceptron:

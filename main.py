@@ -34,12 +34,12 @@ def main():
 	#(x_train, y_train), (x_test, y_test) = mnist.load_data()
 	(x_train, y_train), (x_test, y_test) = LoadData()
 
-	train_sets = LoadInputs(x_train, y_train)
+	#train_sets = LoadInputs(x_train, y_train)
 	test_sets = LoadInputs(x_test, y_test)
 
-	Problem1(train_sets[7], train_sets[9], test_sets[7], test_sets[9])
+	#Problem1(train_sets[7], train_sets[9], test_sets[7], test_sets[9])
 	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
-	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
+	Problem2(test_sets, test_sets)
 	#Problem3(x_train, y_train, x_test, y_test, greyscale_range, 3)
 	#Problem3(x_train, y_train, x_test, y_test, greyscale_range, 6)
 	#Problem3(x_train, y_train, x_test, y_test, greyscale_range, 10)
