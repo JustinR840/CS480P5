@@ -1,4 +1,4 @@
-from Helpers import Image, MulticlassPerceptron, AllWeightsValid
+from Helpers import Image, MulticlassPerceptron
 from random import randint, shuffle
 import numpy as np
 
@@ -98,6 +98,8 @@ def Problem2(x_train, y_train, p_width, p_height, greyscale_range):
 	train_inputs = []
 	train_targets = []
 	ImagesToInput(training_data, train_inputs, train_targets)
+
+	return
 
 	p = DoTraining(train_inputs, train_targets)
 	print(p.weights)

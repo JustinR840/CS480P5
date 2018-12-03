@@ -1,4 +1,9 @@
 import tensorflow as tf
+#import tensorflow as tf
+from Helpers import TestSimpleData, LoadInputs
+from Problem1 import Problem1
+#import tensorflow as tf
+>>>>>>> 3ffd6a106ad53cc39468ac82e49d42c9c7927b67
 from Helpers import TestSimpleData
 from Problem1 import Problem1
 from Problem2 import Problem2
@@ -15,7 +20,7 @@ def main():
 	greyscale_range = 255
 
 	# Just to verify that the internals of Image still work as expected
-	#TestSimpleData(p_width, p_height, greyscale_range)
+	TestSimpleData(p_width, p_height, greyscale_range)
 
 	# Get the MNIST
 	#mnist = tf.keras.datasets.mnist
@@ -31,8 +36,12 @@ def main():
 	#(x_train, y_train), (x_test, y_test) = mnist.load_data()
 	(x_train, y_train), (x_test, y_test) = LoadData()
 
+	train_sets = LoadInputs(x_train, y_train)
+	test_sets = LoadInputs(x_test, y_test)
+
+	Problem1(train_sets[7], train_sets[9], test_sets[7], test_sets[9])
 	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
-	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
+	Problem2(x_train, y_train, p_width, p_height, greyscale_range)
 	prob3s = []
 	prob3s.append(Problem3(x_train, y_train, x_test, y_test, greyscale_range, 3))
 	prob3s.append(Problem3(x_train, y_train, x_test, y_test, greyscale_range, 6))
