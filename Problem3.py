@@ -3,44 +3,42 @@ import numpy as np
 import random as r
 import tensorflow as tf
 import datetime as dt
+import sys
 
-# Test each component of the multilayer perceptron individually
 # Compute activation of hidden neurons
 def hidden_act(input_set, hidden_wgts, hidden_acts, num_hidden_nodes, m):
-	for i in range(num_hidden_nodes):
-		weighted_sum = np.dot(input_set[m], hidden_wgts[i])
-		hidden_acts[i] = (1 / (1 + math.exp(-1 * weighted_sum)))
+	wgt_sums = np.dot(hidden_wgts, input_set[m])
+	hidden_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
+	hidden_acts = np.append(hidden_acts, [1])
+	hidden_acts = np.array(hidden_acts, dtype=np.float64)
 	return hidden_acts
 
 # Compute activation of output neurons
 def output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes, num_output_nodes):
-	for i in range(num_output_nodes):
-		weighted_sum = np.dot(hidden_acts, output_wgts[i])
-		output_acts[i] = 1 / (1 + math.exp(-1 * weighted_sum))
+	wgt_sums = np.dot(output_wgts, hidden_acts)
+	output_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
 	return output_acts
 
+# Compute error at the output layer neurons
 def compute_output_error(output_acts, num_output_nodes, target, delta_o):
-	for i in range(num_output_nodes):
-		delta_o[i] = -1 * (output_acts[i] - target[i]) * output_acts[i] * ((1 - output_acts[i]))
+	delta_o = np.array(-1 * (output_acts - target) * output_acts * (1 - output_acts), dtype=np.float64)
 	return delta_o
 
 # Compute error at the hidden layer neurons
 def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h):
-	for i in range(num_hidden_nodes):
-		delta_h[i] = delta_o[0] * output_wgts[0][i] * hidden_acts[i] * (1-hidden_acts[i])
+	delta_h = np.array(np.dot(delta_o,output_wgts) * hidden_acts * (1-hidden_acts), dtype=np.float64)
 	return delta_h
 
 # Update output layer weights
 def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta):
 	for i in range(num_output_nodes):
-		for j in range(num_hidden_nodes):
-			output_wgts[i][j] = (output_wgts[i][j] + eta * delta_o[i] * hidden_acts[j])
+		output_wgts[i] += eta * delta_o[i] * hidden_acts
 	return output_wgts
 
 def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m):
 	for i in range(num_hidden_nodes):
-		for j in range(len(input_set[0])):
-			hidden_wgts[i][j] = (hidden_wgts[i][j] + eta * delta_h[i] * input_set[m][j])
+		hidden_wgts[i] += eta * delta_h[i] * input_set[m]
+	
 	return hidden_wgts
 
 def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes):
@@ -51,13 +49,14 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 	# Init the RNG
 	r.seed()
 
-	set_len = 10
+	#set_len = 10
 	#set_len = len(x_train)
 
 	# Prepare the training set
-	train_set = [[0 for _ in range(49)] for _ in range(set_len)]
-	#for i in range(len(x_train)):
-	for i in range(set_len):
+	#train_set = [[0 for _ in range(49)] for _ in range(set_len)]
+	train_set = [[0 for _ in range(49)] for _ in range(len(x_train))]
+	for i in range(len(x_train)):
+	#for i in range(set_len):
 		for j in range(0,28,4):
 			for k in range(0,28,4):
 				total = 0
@@ -71,8 +70,10 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 				train_set[i][j*7//4+k//4] = total
 
 	# Prepare the test set
-	test_set = [[0 for _ in range(49)] for _ in range(set_len)]
-	for i in range(set_len):
+	#test_set = [[0 for _ in range(49)] for _ in range(set_len)]
+	test_set = [[0 for _ in range(49)] for _ in range(len(x_test))]
+	#for i in range(set_len):
+	for i in range(len(x_test)):
 		for j in range(0,28,4):
 			for k in range(0,28,4):
 				total = 0
@@ -85,8 +86,20 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 						total += x_test[i][x][y] / 16 / 255
 				test_set[i][j*7//4+k//4] = total
 
+	# Bias for the input and hidden node
+	bias = 1
+
+	# Append the bias to each input and test vector
+	for i in range(len(train_set)):
+		train_set[i].append(bias)
+	for i in range(len(test_set)):
+		test_set[i].append(bias)
+
+	train_set = np.array(train_set, dtype=np.float64)
+	test_set = np.array(test_set, dtype=np.float64)
+
 	# Create a target weight vector for our training set
-	old_targets = y_train.tolist()[0:set_len]
+	old_targets = y_train.tolist()
 	targets = []
 	for i in range(len(old_targets)):
 		t = []
@@ -97,8 +110,10 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 				t.append(0)
 		targets.append(t)
 
+	targets = np.array(targets, dtype=np.float64)
+
 	# Create a target weight vector for our test set
-	old_tests = y_test.tolist()[0:set_len]
+	old_tests = y_test.tolist()
 	tests = []
 	for i in range(len(old_tests)):
 		t = []
@@ -109,35 +124,41 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 				t.append(0)
 		tests.append(t)
 
+	tests = np.array(tests, dtype=np.float64)
+
 	# The number of output nodes
 	num_output_nodes = len(targets[0])
 
 	# Initial setup for the hidden node and output node weights
-	hidden_wgts = [[r.uniform(0,1/3) for _ in range(len(train_set[0])+1)] for _ in range(num_hidden_nodes)]
-	output_wgts = [[r.uniform(0,1/3) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
+	hidden_wgts = [[r.uniform(-1/3,1/3) for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
+	hidden_wgts = np.array(hidden_wgts, dtype=np.float64)
+	output_wgts = [[r.uniform(-1/3,1/3) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
+	output_wgts = np.array(output_wgts, dtype=np.float64)
 	num_epochs = 1000
 
 	# Initialize activations
-	hidden_acts = [0 for _ in range(num_hidden_nodes+1)]
+	hidden_acts = np.zeros(num_hidden_nodes+1, dtype=np.float64)
 	hidden_acts[num_hidden_nodes] = 1
-	output_acts = [0 for _ in range(num_output_nodes+1)]
+	output_acts = np.zeros(num_output_nodes+1, dtype=np.float64)
 	output_acts[num_output_nodes] = 1
 
 	# Initialize delta error
-	delta_h = [0 for _ in range(num_hidden_nodes)]
-	delta_o = [0 for _ in range(num_output_nodes)]
+	delta_h = np.zeros(num_hidden_nodes, dtype=np.float64)
+	delta_o = np.zeros(num_output_nodes, dtype=np.float64)
 
 	# Learning coefficient
 	eta = 1
 
-	# Bias for the input and hidden node
-	bias = 1
+	# Process start time
+	epoch_start_time = dt.datetime.now()
 
-	# Append the bias to each input and test vector
-	for i in range(len(train_set)):
-		train_set[i].append(bias)
-	for i in range(len(test_set)):
-		test_set[i].append(bias)
+	# Initialize which epoch has the minimum error as well as the min error
+	epoch_min_error = 0
+	min_error = 1
+	error_rate = None
+
+	# The confusion matrix
+	confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]
 
 	# Run the training algorithm for a number of epochs
 	for n in range(num_epochs):
@@ -146,7 +167,7 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 		train_order = []
 		for i in range(len(train_set)):
 			train_order.append(i)
-		#r.shuffle(train_order)
+		r.shuffle(train_order)
 
 		# Run the training set
 		for m in range(len(train_set)):
@@ -160,56 +181,60 @@ def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes
 		if(n % (num_epochs // 10) == 0):
 			print(str(n) + " epochs have been completed.")
 
-	# Keep track of how many times the neural network has guessed correctly
-	num_successes = 0
+		# Keep track of how many times the neural network has guessed correctly
+		num_successes = 0
 
-	# The confusion matrix
-	confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]
+		# Run the test set in a randomized order
+		test_order = []
+		for i in range(len(test_set)):
+			test_order.append(i)
+		r.shuffle(test_order)
 
-	# Run the test set in a randomized order
-	test_order = []
-	for i in range(len(test_set)):
-		test_order.append(i)
-	#r.shuffle(test_order)
+		# Run the test set
+		for m in range(len(test_set)):
 
-	# Run the test set
-	for m in range(len(test_set)):
+			# The value we want
+			target = y_test[test_order[m]]
 
-		# The value we want
-		target = y_test[test_order[m]]
+			# Recall algorithm
+			hidden_acts = hidden_act(test_set, hidden_wgts, hidden_acts, num_hidden_nodes, test_order[m])
+			output_acts = output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes,num_output_nodes)
 
-		# Recall algorithm
-		hidden_acts = hidden_act(test_set, hidden_wgts, hidden_acts, num_hidden_nodes, test_order[m])
-		output_acts = output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes,num_output_nodes)
+			# Which value is largest, aka, the algo's current guess?
+			max_val = -999999
+			cur_guess = -1
 
-		# Which value is largest, aka, the algo's current guess?
-		max_val = -999999
-		cur_guess = -1
+			# Find the max value in the current vector
+			# If the current value is larger, mark that value as our current guess
+			#print(output_acts)
+			for i in range(num_output_nodes):
+				if(output_acts[i] > max_val):
+					max_val = output_acts[i]
+					cur_guess = i
 
-		# Find the max value in the current vector
-		# If the current value is larger, mark that value as our current guess
-		#print(output_acts)
-		for i in range(num_output_nodes):
-			if(output_acts[i] > max_val):
-				max_val = output_acts[i]
-				cur_guess = i
+			# If the guess is correct, mark it as a success
+			if(target == cur_guess):
+				num_successes += 1
 
-		# If the guess is correct, mark it as a success
-		if(target == cur_guess):
-			num_successes += 1
+			# Update the confusion matrix on the last training cycle
+			if(n == num_epochs - 1):
 
-		# Increment the confusion matrix
-		#print("target = " + str(target))
-		#print("cur_guess = " + str(cur_guess))
-		#print()
-		confusion_matrix[target][cur_guess] += 1
+				# Increment the confusion matrix
+				confusion_matrix[target][cur_guess] += 1
 
-	# Report our findings
-	delta_time = (dt.datetime.now() - start_time)
-	print("The process took " + str(delta_time))
-	print("There were " + str(num_successes) + " sucesses.")
-	print(str(num_successes * 100 / len(test_set)) + "% are correct.")
-	print("Confusion matrix:")
-	print("X axis is the guessed value")
-	print("Y axis is the actual value")
-	print(confusion_matrix)
+		# Get this epoch's error rate
+		error_rate = 1 - num_successes / len(test_set)
+
+		# If this epoch's error rate is the new minimum, update accordingly
+		if(error_rate < min_error):
+			epoch_min_error = n
+			min_error = error_rate
+
+	return  {
+				"num_hidden_nodes": num_hidden_nodes, 
+				"epoch_min_error": epoch_min_error, 
+				"error_rate": error_rate, 
+				"hidden_wgts": hidden_wgts, 
+				"output_wgts": output_wgts, 
+				"confusion_matrix": confusion_matrix
+			}
