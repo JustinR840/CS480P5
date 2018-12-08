@@ -51,7 +51,7 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 	# Init the RNG
 	r.seed()
 
-	train_set_len = 6000
+	train_set_len = 10
 	#train_set_len = len(x_train)
 	test_set_len = train_set_len // 10
 	#test_set_len = 100
@@ -168,6 +168,7 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 	cur_guess = -1
 
 	# Run the training algorithm for a number of epochs
+	print("Starting run on " + num_hidden_nodes + " hidden nodes")
 	for n in range(num_epochs):
 
 		# Run the training set in a randomized order
@@ -236,6 +237,8 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 		if(error_rate < min_error):
 			epoch_min_error = n
 			min_error = error_rate
+
+	print(str(num_epochs) + " epochs have been completed.")
 
 	return  {
 				"num_hidden_nodes": num_hidden_nodes,
