@@ -1,240 +1,76 @@
-import math
-import numpy as np
-import random as r
-import tensorflow as tf
-import datetime as dt
-import sys
+# Created by: Elias Mote, Justin Ramos
 
-# Compute activation of hidden neurons
-def hidden_act(input_set, hidden_wgts, hidden_acts, num_hidden_nodes, m):
-	wgt_sums = np.dot(hidden_wgts, input_set[m])
-	hidden_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
-	hidden_acts = np.append(hidden_acts, [1])
-	hidden_acts = np.array(hidden_acts, dtype=np.float64)
-	return hidden_acts
+def Problem3(x_train, y_train, x_test, y_test):
 
-# Compute activation of output neurons
-def output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes, num_output_nodes):
-	wgt_sums = np.dot(output_wgts, hidden_acts)
-	output_acts = (1 / (1 + np.exp(-1 * wgt_sums)))
-	return output_acts
+	from NeuralNetwork import NeuralNetwork
 
-# Compute error at the output layer neurons
-def compute_output_error(output_acts, num_output_nodes, target, delta_o):
-	delta_o = np.array(-1 * (output_acts - target) * output_acts * (1 - output_acts), dtype=np.float64)
-	return delta_o
+	greyscale_range = 255
+	neural_networks = []
+	neural_networks.append(NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, 3))
+	neural_networks.append(NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, 6))
+	neural_networks.append(NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, 10))
+	neural_networks.append(NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, 15))
+	neural_networks.append(NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, 21)) 
 
-# Compute error at the hidden layer neurons
-def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h):
-	delta_h = np.array(np.dot(delta_o,output_wgts) * hidden_acts * (1-hidden_acts), dtype=np.float64)
-	return delta_h
+	# Report findings for optimal network
+	best_network = neural_networks[0]
+	for n in neural_networks:
+		if(n["error_rate"] < best_network["error_rate"]):
+			best_network = n
 
-# Update output layer weights
-def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta):
-	for i in range(num_output_nodes):
-		output_wgts[i] += eta * delta_o[i] * hidden_acts
-	return output_wgts
+	print(str(best_network["num_hidden_nodes"]) + " hidden layer neurons gave the minimum error rate")
+	print("Epoch with the minimum error is " + str(best_network["epoch_min_error"]))
+	print("Error rate is " + str(best_network["error_rate"]))
+	print("Hidden layer neuron weights:")
+	print(best_network["hidden_wgts"])
+	print("Output layer neuron weights:")
+	print(best_network["output_wgts"])
+	print("Confusion matrix:")
+	print("X axis is the actual value")
+	print("Y axis is the guessed value")
+	print(best_network["confusion_matrix"])
 
-def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m):
-	for i in range(num_hidden_nodes):
-		hidden_wgts[i] += eta * delta_h[i] * input_set[m]
-	
-	return hidden_wgts
+	return best_network
 
-def Problem3(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_nodes):
+	"""
+	import json
+	import numpy as np
 
-	# Process start time
-	start_time = dt.datetime.now()
+	x_train, y_train, x_test, y_test = [],[],[],[]
 
-	# Init the RNG
-	r.seed()
+	# Build the training files
+	for i in range(10):
 
-	#set_len = 10
-	#set_len = len(x_train)
+		# Get the data from the json file
+		input_file = open("sample_handwriting_number.json")
+		data = json.load(input_file)
+		
+		# When we are rebuilding the files, the x and y sets will be in order.
+		# Thus, randomizing the input to the machine learning algorithms is important
+		# Build the x file and y file
+		for j in range(len(data)):
+			x_train.append(data[j])
+			y_train.append(i)
 
-	# Prepare the training set
-	#train_set = [[0 for _ in range(49)] for _ in range(set_len)]
-	train_set = [[0 for _ in range(49)] for _ in range(len(x_train))]
-	for i in range(len(x_train)):
-	#for i in range(set_len):
-		for j in range(0,28,4):
-			for k in range(0,28,4):
-				total = 0
-				for x in range(j,j+4):
-					for y in range(k,k+4):
+	# Build the test files
+	for i in range(10):
 
-						# Divide by 16 for averaging the 4x4 block.
-						# Also divide by 255 so each grayscale value varies from 0 to 1.
-						# This helps keep the neural network from becoming oversaturated
-						total += x_train[i][x][y] / 16 / 255
-				train_set[i][j*7//4+k//4] = total
+		# Get the data from the json file
+		input_file = open("sample_handwriting_number.json")
+		data = json.load(input_file)
+		
+		# When we are rebuilding the files, the x and y sets will be in order.
+		# Thus, randomizing the input to the machine learning algorithms is important
+		# Build the x file and y file
+		for j in range(len(data)):
+			x_test.append(data[j])
+			y_test.append(i)
 
-	# Prepare the test set
-	#test_set = [[0 for _ in range(49)] for _ in range(set_len)]
-	test_set = [[0 for _ in range(49)] for _ in range(len(x_test))]
-	#for i in range(set_len):
-	for i in range(len(x_test)):
-		for j in range(0,28,4):
-			for k in range(0,28,4):
-				total = 0
-				for x in range(j,j+4):
-					for y in range(k,k+4):
+	x_train = np.asarray(x_train)
+	y_train = np.asarray(y_train)
+	x_test = np.asarray(x_test)
+	y_test = np.asarray(y_test)
 
-						# Divide by 16 for averaging the 4x4 block.
-						# Also divide by 255 so each grayscale value varies from 0 to 1.
-						# This helps keep the neural network from becoming oversaturated
-						total += x_test[i][x][y] / 16 / 255
-				test_set[i][j*7//4+k//4] = total
-
-	# Bias for the input and hidden node
-	bias = 1
-
-	# Append the bias to each input and test vector
-	for i in range(len(train_set)):
-		train_set[i].append(bias)
-	for i in range(len(test_set)):
-		test_set[i].append(bias)
-
-	train_set = np.array(train_set, dtype=np.float64)
-	test_set = np.array(test_set, dtype=np.float64)
-
-	# Create a target weight vector for our training set
-	old_targets = y_train.tolist()
-	targets = []
-	for i in range(len(old_targets)):
-		t = []
-		for j in range(10):
-			if(j == old_targets[i]):
-				t.append(1)
-			else:
-				t.append(0)
-		targets.append(t)
-
-	targets = np.array(targets, dtype=np.float64)
-
-	# Create a target weight vector for our test set
-	old_tests = y_test.tolist()
-	tests = []
-	for i in range(len(old_tests)):
-		t = []
-		for j in range(10):
-			if(j == old_tests[i]):
-				t.append(1)
-			else:
-				t.append(0)
-		tests.append(t)
-
-	tests = np.array(tests, dtype=np.float64)
-
-	# The number of output nodes
-	num_output_nodes = len(targets[0])
-
-	# Initial setup for the hidden node and output node weights
-	hidden_wgts = [[r.uniform(-1/3,1/3) for _ in range(len(train_set[0]))] for _ in range(num_hidden_nodes)]
-	hidden_wgts = np.array(hidden_wgts, dtype=np.float64)
-	output_wgts = [[r.uniform(-1/3,1/3) for _ in range(num_hidden_nodes+1)] for _ in range(num_output_nodes)]
-	output_wgts = np.array(output_wgts, dtype=np.float64)
-	num_epochs = 1000
-
-	# Initialize activations
-	hidden_acts = np.zeros(num_hidden_nodes+1, dtype=np.float64)
-	hidden_acts[num_hidden_nodes] = 1
-	output_acts = np.zeros(num_output_nodes+1, dtype=np.float64)
-	output_acts[num_output_nodes] = 1
-
-	# Initialize delta error
-	delta_h = np.zeros(num_hidden_nodes, dtype=np.float64)
-	delta_o = np.zeros(num_output_nodes, dtype=np.float64)
-
-	# Learning coefficient
-	eta = 1
-
-	# Process start time
-	epoch_start_time = dt.datetime.now()
-
-	# Initialize which epoch has the minimum error as well as the min error
-	epoch_min_error = 0
-	min_error = 1
-	error_rate = None
-
-	# The confusion matrix
-	confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]
-
-	# Run the training algorithm for a number of epochs
-	for n in range(num_epochs):
-
-		# Run the training set in a randomized order
-		train_order = []
-		for i in range(len(train_set)):
-			train_order.append(i)
-		r.shuffle(train_order)
-
-		# Run the training set
-		for m in range(len(train_set)):
-			hidden_acts = hidden_act(train_set, hidden_wgts, hidden_acts, num_hidden_nodes, train_order[m])
-			output_acts = output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes,num_output_nodes)
-			delta_o = compute_output_error(output_acts, num_output_nodes, targets[train_order[m]], delta_o)
-			delta_h = compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_nodes, delta_o, delta_h)
-			output_wgts = update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta)
-			hidden_wgts = update_hidden_wgts(train_set, num_hidden_nodes, hidden_wgts, delta_h, eta, train_order[m])
-
-		if(n % (num_epochs // 10) == 0):
-			print(str(n) + " epochs have been completed.")
-
-		# Keep track of how many times the neural network has guessed correctly
-		num_successes = 0
-
-		# Run the test set in a randomized order
-		test_order = []
-		for i in range(len(test_set)):
-			test_order.append(i)
-		r.shuffle(test_order)
-
-		# Run the test set
-		for m in range(len(test_set)):
-
-			# The value we want
-			target = y_test[test_order[m]]
-
-			# Recall algorithm
-			hidden_acts = hidden_act(test_set, hidden_wgts, hidden_acts, num_hidden_nodes, test_order[m])
-			output_acts = output_act(hidden_acts, output_wgts, output_acts, num_hidden_nodes,num_output_nodes)
-
-			# Which value is largest, aka, the algo's current guess?
-			max_val = -999999
-			cur_guess = -1
-
-			# Find the max value in the current vector
-			# If the current value is larger, mark that value as our current guess
-			#print(output_acts)
-			for i in range(num_output_nodes):
-				if(output_acts[i] > max_val):
-					max_val = output_acts[i]
-					cur_guess = i
-
-			# If the guess is correct, mark it as a success
-			if(target == cur_guess):
-				num_successes += 1
-
-			# Update the confusion matrix on the last training cycle
-			if(n == num_epochs - 1):
-
-				# Increment the confusion matrix
-				confusion_matrix[target][cur_guess] += 1
-
-		# Get this epoch's error rate
-		error_rate = 1 - num_successes / len(test_set)
-
-		# If this epoch's error rate is the new minimum, update accordingly
-		if(error_rate < min_error):
-			epoch_min_error = n
-			min_error = error_rate
-
-	return  {
-				"num_hidden_nodes": num_hidden_nodes, 
-				"epoch_min_error": epoch_min_error, 
-				"error_rate": error_rate, 
-				"hidden_wgts": hidden_wgts, 
-				"output_wgts": output_wgts, 
-				"confusion_matrix": confusion_matrix
-			}
+	a = Problem3(x_train, y_train, x_test, y_test, greyscale_range, best_prob3["num_hidden_nodes"])
+	print("Digit guess is " + a["cur_guess"])
+	"""

@@ -1,13 +1,12 @@
+# Created by: Elias Mote, Justin Ramos
+
 import tensorflow as tf
-#import tensorflow as tf
 from Helpers import TestSimpleData, LoadInputs
-from Problem1 import Problem1
-#import tensorflow as tf
->>>>>>> 3ffd6a106ad53cc39468ac82e49d42c9c7927b67
 from Helpers import TestSimpleData
 from Problem1 import Problem1
 from Problem2 import Problem2
 from Problem3 import Problem3
+from NeuralNetwork import TestNetwork
 import json
 from CreateMNISTDataSets import CreateFiles
 from LoadMNISTDataSets import LoadData
@@ -20,10 +19,10 @@ def main():
 	greyscale_range = 255
 
 	# Just to verify that the internals of Image still work as expected
-	TestSimpleData(p_width, p_height, greyscale_range)
+	#TestSimpleData(p_width, p_height, greyscale_range)
 
 	# Get the MNIST
-	#mnist = tf.keras.datasets.mnist
+	mnist = tf.keras.datasets.mnist
 
 	# Run this to build the files
 	#CreateFiles()
@@ -33,39 +32,34 @@ def main():
 	# shape (num_samples, 28, 28).
 	# y_train and y_test are uint8 arrays of digit labels 
 	# (integers in range 0-9) with shape (num_samples,).
-	#(x_train, y_train), (x_test, y_test) = mnist.load_data()
-	(x_train, y_train), (x_test, y_test) = LoadData()
+	(x_train, y_train), (x_test, y_test) = mnist.load_data()
+	#(x_train, y_train), (x_test, y_test) = LoadData()
 
-	train_sets = LoadInputs(x_train, y_train)
-	test_sets = LoadInputs(x_test, y_test)
+	#train_sets = LoadInputs(x_train, y_train)
+	#test_sets = LoadInputs(x_test, y_test)
 
-	Problem1(train_sets[7], train_sets[9], test_sets[7], test_sets[9])
-	#Problem1(x_train, y_train, p_width, p_height, greyscale_range)
-	Problem2(x_train, y_train, p_width, p_height, greyscale_range)
-	prob3s = []
-	prob3s.append(Problem3(x_train, y_train, x_test, y_test, greyscale_range, 3))
-	prob3s.append(Problem3(x_train, y_train, x_test, y_test, greyscale_range, 6))
-	prob3s.append(Problem3(x_train, y_train, x_test, y_test, greyscale_range, 10))
-	prob3s.append(Problem3(x_train, y_train, x_test, y_test, greyscale_range, 15))
-	prob3s.append(Problem3(x_train, y_train, x_test, y_test, greyscale_range, 21)) 
+	#Problem1(train_sets[7], train_sets[9], test_sets[7], test_sets[9])
+	#Problem2(x_train, y_train, p_width, p_height, greyscale_range)
+	best_nrl_network = Problem3(x_train, y_train, x_test, y_test)
 
-	# Report findings for optimal network
-	best_prob3 = prob3s[0]
-	for p3 in prob3s:
-		if(p3["error_rate"] < best_prob3["error_rate"]):
-			best_prob3 = p3
+	# Final step: accept as input a single image of a hand written digit
+	#while()
+	file_digit = input("Enter number 0-9 for digit recognition: ")
+	input_file = open("test" + str(file_digit) + ".json")
+	#input_file = open("sample" + str(file_digit) + ".json")
 
-	print(str(best_prob3["num_hidden_nodes"]) + " hidden layer neurons gave the minimum error rate")
-	print("Epoch with the minimum error is " + str(best_prob3["epoch_min_error"]))
-	print("Error rate is " + str(best_prob3["error_rate"]))
-	print("Hidden layer neuron weights:")
-	print(best_prob3["hidden_wgts"])
-	print("Output layer neuron weights:")
-	print(best_prob3["output_wgts"])
-	print("Confusion matrix:")
-	print("X axis is the actual value")
-	print("Y axis is the guessed value")
-	print(best_prob3["confusion_matrix"])
+	# Input file should be structed as a single digit array.
+	# Essentially, the same format as before but with only one digit as
+	# only the first value in the array will be checked
+	data = json.load(input_file)
+
+	# Test the selcted digit image file
+	digit_guess = TestNetwork(best_nrl_network["num_hidden_nodes"], best_nrl_network["hidden_wgts"],
+		best_nrl_network["hidden_acts"], best_nrl_network["output_wgts"],
+		best_nrl_network["output_acts"], data)
+
+	# Report the guessed digit
+	print("Neural network: guessed digit is " + str(digit_guess))
 
 if __name__ == '__main__':
 	main()

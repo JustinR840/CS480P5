@@ -1,3 +1,5 @@
+# Created by: Elias Mote, Justin Ramos
+
 def LoadData():
 
 	import json
@@ -39,4 +41,3 @@ def LoadData():
 	y_test = np.asarray(y_test)
 
 	return (x_train, y_train), (x_test, y_test)
-#LoadData()
