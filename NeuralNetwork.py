@@ -31,13 +31,16 @@ def compute_hidden_error(hidden_acts, output_wgts, num_hidden_nodes, num_output_
 
 # Update output layer weights
 def update_output_wgts(hidden_acts, num_hidden_nodes, num_output_nodes, output_wgts, delta_o, eta):
-	for i in range(num_output_nodes):
-		output_wgts[i] += eta * delta_o[i] * hidden_acts
+	new_delta_o = np.array(delta_o)[np.newaxis]
+	new_hidden_acts = np.array(hidden_acts)[np.newaxis]
+	output_wgts += eta * (new_delta_o.T @ new_hidden_acts)
+
 	return output_wgts
 
 def update_hidden_wgts(input_set, num_hidden_nodes, hidden_wgts, delta_h, eta, m):
-	for i in range(num_hidden_nodes):
-		hidden_wgts[i] += eta * delta_h[i] * input_set[m]
+	new_delta_h = np.array(delta_h)[np.newaxis]
+	new_input_set = np.array(input_set[m])[np.newaxis]
+	hidden_wgts += eta * (new_delta_h.T @ new_input_set)[:num_hidden_nodes]
 	
 	return hidden_wgts
 
@@ -49,9 +52,7 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 	# Init the RNG
 	r.seed()
 
-	#train_set_len = 10
 	train_set_len = len(x_train)
-	#test_set_len = train_set_len // 10
 	test_set_len = len(x_test)
 
 
@@ -231,6 +232,8 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 			min_error = error_rate
 
 	print(str(num_epochs) + " epochs have been completed.")
+	end_time = dt.datetime.now()
+	print("Time elapsed: " + str(end_time - start_time))
 
 	return  {
 				"num_hidden_nodes": num_hidden_nodes,
