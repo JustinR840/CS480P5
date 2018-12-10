@@ -1,3 +1,4 @@
+"""
 import tensorflow as tf
 import json
 
@@ -40,3 +41,4 @@ def CreateFiles():
 		with open('train' + str(i) + '.json', 'w') as outfile:
 		#with open('test' + str(i) + '.json', 'w') as outfile:
 		    json.dump(data, outfile)
+"""

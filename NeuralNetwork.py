@@ -3,9 +3,7 @@
 import math
 import numpy as np
 import random as r
-import tensorflow as tf
 import datetime as dt
-import sys
 
 # Compute activation of hidden neurons
 def hidden_act(input_set, hidden_wgts, hidden_acts, num_hidden_nodes, m):
@@ -59,8 +57,6 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 
 	# Prepare the training set
 	train_set = [[0 for _ in range(49)] for _ in range(train_set_len)]
-	#train_set = [[0 for _ in range(49)] for _ in range(len(x_train))]
-	#for i in range(len(x_train)):
 	for i in range(train_set_len):
 		for j in range(0,28,4):
 			for k in range(0,28,4):
@@ -76,9 +72,7 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 
 	# Prepare the test set
 	test_set = [[0 for _ in range(49)] for _ in range(test_set_len)]
-	#test_set = [[0 for _ in range(49)] for _ in range(len(x_test))]
 	for i in range(test_set_len):
-	#for i in range(len(x_test)):
 		for j in range(0,28,4):
 			for k in range(0,28,4):
 				total = 0
@@ -213,7 +207,6 @@ def NeuralNetwork(x_train, y_train, x_test, y_test, greyscale_range, num_hidden_
 
 			# Find the max value in the current vector
 			# If the current value is larger, mark that value as our current guess
-			#print(output_acts)
 			for i in range(num_output_nodes):
 				if(output_acts[i] > max_val):
 					max_val = output_acts[i]

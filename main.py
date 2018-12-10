@@ -1,44 +1,29 @@
 # Created by: Elias Mote, Justin Ramos
 
-import tensorflow as tf
 from Helpers import TestSimpleData, LoadInputs
 from Helpers import TestSimpleData
 from Problem1 import Problem1
 from Problem2 import Problem2
 from Problem3 import Problem3
 from NeuralNetwork import TestNetwork
-import json
 from Helpers import LoadInputs
 from Problem1 import Problem1
 from Problem2 import Problem2
 from Problem3 import Problem3
-from CreateMNISTDataSets import CreateFiles
 from LoadMNISTDataSets import LoadData
+import json
 import numpy as np
-import sys
 
 
 
 def main():
 	greyscale_range = 255
-
-	# Run this to build the files
-	CreateFiles()
-
-	# Just to verify that the internals of Image still work as expected
-	#TestSimpleData(p_width, p_height, greyscale_range)
-
-	# Get the MNIST
-	#mnist = tf.keras.datasets.mnist
-
 	
-
 	# Load in the MNIST data set
 	# x_train and x_test are uint8 arrays of grayscale image data with
 	# shape (num_samples, 28, 28).
 	# y_train and y_test are uint8 arrays of digit labels 
 	# (integers in range 0-9) with shape (num_samples,).
-	#(x_train, y_train), (x_test, y_test) = mnist.load_data()
 	(x_train, y_train), (x_test, y_test) = LoadData()
 
 	train_sets = LoadInputs(x_train, y_train)
@@ -54,9 +39,9 @@ def main():
 	best_nrl_network = Problem3(x_train, y_train, x_test, y_test)
 
 	# Final step: accept as input a single image of a hand written digit
-	file_digit = "9"
+	#file_digit = None
 	#while(not file_digit.isnumeric()):
-		#file_digit = input("Enter number 0-9 for digit recognition: ")
+	file_digit = input("Enter number 0-9 for digit recognition: ")
 	input_file = open("test" + str(file_digit) + ".json")
 
 
