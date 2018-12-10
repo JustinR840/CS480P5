@@ -1,6 +1,7 @@
-from Helpers import Image, MulticlassPerceptron
+from Helpers import MulticlassPerceptron
 from random import randint, shuffle
 import numpy as np
+import sys
 
 
 def DoTraining(train_inputs, train_targets, train_indices, test_input, test_targets, test_indices):
@@ -20,6 +21,8 @@ def DoTraining(train_inputs, train_targets, train_indices, test_input, test_targ
 
 		for i in train_indices:
 			activation = p.ActivationLabel(train_inputs[i])
+			#print(train_inputs[i])
+			#sys.exit()
 
 			if(activation != train_targets[i]):
 				p.UpdateWeights(train_inputs[i], activation, train_targets[i])
@@ -75,4 +78,4 @@ def Problem2(train_sets, test_sets):
 	print("Error: " + str(err))
 	print("Confusion Matrix: " + str(c_m))
 
-
+	return p
