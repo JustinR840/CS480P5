@@ -19,6 +19,12 @@ import numpy as np
 def main():
 	greyscale_range = 255
 	
+	file_digit = ""
+	while(not file_digit.isnumeric() or int(file_digit) < 0 or int(file_digit) > 9):
+		file_digit = input("Enter number 0-9 for digit recognition: ")
+	input_file = open("test" + str(file_digit) + ".json")
+	print("Input accepted")
+
 	# Load in the MNIST data set
 	# x_train and x_test are uint8 arrays of grayscale image data with
 	# shape (num_samples, 28, 28).
@@ -39,10 +45,7 @@ def main():
 	best_nrl_network = Problem3(x_train, y_train, x_test, y_test)
 
 	# Final step: accept as input a single image of a hand written digit
-	#file_digit = None
-	#while(not file_digit.isnumeric()):
-	file_digit = input("Enter number 0-9 for digit recognition: ")
-	input_file = open("test" + str(file_digit) + ".json")
+	
 
 
 	# Input file should be structed as a single digit array.
